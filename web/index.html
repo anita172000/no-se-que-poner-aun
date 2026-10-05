@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Atiendia · Recepcionista IA 24/7 para clínicas</title>
-<meta name="description" content="Atiendia responde a tus pacientes en menos de 60 segundos, día y noche, y les deja la cita reservada. Recepcionista con IA para clínicas estéticas, dentales y negocios locales. Demo gratis con el nombre de tu negocio.">
+<title>Atiendia · Recepcionista IA 24/7 para clínicas y negocios</title>
+<meta name="description" content="Atiendia responde a tus clientes en menos de 60 segundos, día y noche, y les deja la cita reservada. Recepcionista con IA para clínicas estéticas, dentales y negocios locales. Demo gratis con el nombre de tu negocio en 48 h.">
 <link rel="canonical" href="https://atiendia.es/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="es_ES">
 <meta property="og:site_name" content="Atiendia">
-<meta property="og:title" content="Atiendia · Ningún paciente sin respuesta">
+<meta property="og:title" content="Atiendia · Ningún cliente sin respuesta">
 <meta property="og:description" content="Recepcionista con IA que responde en segundos y reserva citas 24/7. Pide tu demo gratis.">
 <meta property="og:url" content="https://atiendia.es/">
-<meta name="theme-color" content="#1d7558">
+<meta name="theme-color" content="#0f1c2b">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Figtree:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Figtree:wght@400;600;700;800&display=swap">
 <link rel="stylesheet" href="estilos.css">
 <script type="application/ld+json">
 {
@@ -24,6 +24,7 @@
   "@type": "ProfessionalService",
   "name": "Atiendia",
   "url": "https://atiendia.es/",
+  "logo": "https://atiendia.es/favicon.svg",
   "description": "Recepcionista con inteligencia artificial para clínicas y negocios locales: responde a los clientes en segundos, reserva citas 24/7, hace seguimiento y reactiva clientes antiguos.",
   "areaServed": {"@type": "Country", "name": "España"},
   "email": "hola@atiendia.es",
@@ -37,7 +38,7 @@
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    {"@type": "Question", "name": "¿La IA puede decir algo incorrecto a mis pacientes?", "acceptedAnswer": {"@type": "Answer", "text": "Solo responde con la información de tu negocio que tú validas: servicios, precios desde, horarios y políticas. No da diagnósticos ni promete resultados, y pasa la conversación a tu equipo cuando hay quejas, urgencias o alguien pide hablar con una persona."}},
+    {"@type": "Question", "name": "¿La IA puede decir algo incorrecto a mis clientes?", "acceptedAnswer": {"@type": "Answer", "text": "Solo responde con la información de tu negocio que tú validas: servicios, precios desde, horarios y políticas. No da diagnósticos ni promete resultados, y pasa la conversación a tu equipo cuando hay quejas, urgencias o alguien pide hablar con una persona."}},
     {"@type": "Question", "name": "¿Sustituye a mi recepcionista?", "acceptedAnswer": {"@type": "Answer", "text": "No. Cubre noches, fines de semana y picos de mensajes, y deja a tu equipo los contactos ya calificados y con cita."}},
     {"@type": "Question", "name": "¿Cuánto tarda en estar funcionando?", "acceptedAnswer": {"@type": "Answer", "text": "La demo con el nombre de tu negocio está lista en 48 horas. La puesta en marcha completa lleva unas dos semanas."}},
     {"@type": "Question", "name": "¿Cumple con el RGPD?", "acceptedAnswer": {"@type": "Answer", "text": "Sí. Firmamos un contrato de encargado del tratamiento, los datos son tuyos y cada mensaje comercial incluye una forma sencilla de darse de baja."}}
@@ -47,237 +48,450 @@
 </head>
 <body>
 
+<!-- Iconos reutilizables -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 20 20"><path d="M4.5 10.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 10h8M8 13h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 3v4M16 3v4M3 10h18M9 15l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-loop" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c2 .7 3.2 2.4 3.6 5.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 12l2.5 2.5 4.5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-badge" viewBox="0 0 24 24"><circle cx="12" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 14l-1.5 7 5-2.5 5 2.5-1.5-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4v4M9 13h.01M15 13h.01" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="logo" viewBox="0 0 30 30"><rect x="2" y="5" width="26" height="23" rx="7" fill="#17795a"/><rect x="8" y="2" width="3" height="7" rx="1.5" fill="#7fd8b3"/><rect x="19" y="2" width="3" height="7" rx="1.5" fill="#7fd8b3"/><path d="M9.5 17.5l4 4 7.5-8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
 <header class="site"><div class="wrap">
-  <a class="logo" href="#inicio" aria-label="Atiendia, inicio">
-    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="2" y="5" width="26" height="23" rx="6" fill="var(--accent)"/><rect x="8" y="2" width="3" height="7" rx="1.5" fill="var(--ink)"/><rect x="19" y="2" width="3" height="7" rx="1.5" fill="var(--ink)"/><path d="M9.5 17.5l4 4 7.5-8" fill="none" stroke="var(--accent-ink)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    Atiendia
-  </a>
+  <a class="logo" href="#inicio" aria-label="Atiendia, inicio"><svg width="30" height="30"><use href="#logo"/></svg>Atiendia</a>
   <nav aria-label="Secciones">
-    <a href="#servicios">Servicios</a><a href="#como">Cómo funciona</a><a href="#precios">Precios</a><a href="#opiniones">Opiniones</a><a href="#preguntas">Preguntas</a>
+    <a href="#servicios">Servicios</a><a href="#calculadora">Calculadora</a><a href="#como">Cómo funciona</a><a href="#precios">Precios</a><a href="#preguntas">Preguntas</a>
   </nav>
-  <a class="btn" href="#demo">Pide tu demo</a>
+  <a class="btn" href="#demo">Demo gratis</a>
 </div></header>
 
 <main id="inicio">
-<section class="hero" style="border-top:0"><div class="wrap">
+
+<section class="hero"><div class="wrap">
   <div>
     <p class="eyebrow">Recepcionista con IA para clínicas y negocios locales</p>
-    <h1 style="margin-top:14px">Ningún paciente sin respuesta. Ni a las 23:00.</h1>
-    <p class="lede">Atiendia contesta a cada persona que te escribe en menos de 60 segundos, resuelve sus dudas con tus precios y horarios y le deja la cita reservada en tu agenda. Tú solo atiendes a quien ya viene.</p>
+    <h1 style="margin-top:16px">Ningún cliente sin respuesta. <em>Ni a las 23:00.</em></h1>
+    <p class="lede">Atiendia contesta en menos de un minuto a cada persona que te escribe, resuelve sus dudas con tus precios y horarios y le deja la cita reservada en tu agenda. Tú solo atiendes a quien ya viene.</p>
     <div class="ctas">
-      <a class="btn" href="#demo">Quiero ver mi demo gratis</a>
-      <a class="btn ghost" href="#como">Cómo funciona</a>
+      <a class="btn" href="#demo">Quiero mi demo gratis <svg width="18" height="18"><use href="#i-arrow"/></svg></a>
+      <a class="btn ghost" href="#calculadora">¿Cuánto estoy perdiendo?</a>
     </div>
-    <ul class="trust">
-      <li>Demo con el nombre de tu negocio en 48 h</li>
-      <li>Sin permanencia larga</li>
-      <li>Garantía de resultados</li>
+    <ul class="trustrow">
+      <li><svg width="18" height="18"><use href="#i-check"/></svg>Demo con tu nombre en 48 h</li>
+      <li><svg width="18" height="18"><use href="#i-check"/></svg>Garantía de resultados</li>
+      <li><svg width="18" height="18"><use href="#i-check"/></svg>Cumple el RGPD</li>
     </ul>
   </div>
-  <div class="agenda" aria-label="Ejemplo de agenda que se llena con citas reservadas por la recepcionista">
-    <div class="head"><b>Agenda de la semana</b><span>14 citas nuevas</span></div>
-    <div class="grid" aria-hidden="true">
-      <span></span><span class="h">L</span><span class="h">M</span><span class="h">X</span><span class="h">J</span><span class="h">V</span>
-      <span class="t">10:00</span><span class="s on"></span><span class="s"></span><span class="s on"></span><span class="s on"></span><span class="s"></span>
-      <span class="t">11:30</span><span class="s"></span><span class="s on"></span><span class="s on"></span><span class="s"></span><span class="s on"></span>
-      <span class="t">13:00</span><span class="s on"></span><span class="s on"></span><span class="s"></span><span class="s on"></span><span class="s on"></span>
-      <span class="t">17:00</span><span class="s"></span><span class="s on"></span><span class="s on"></span><span class="s new"></span><span class="s on"></span>
-      <span class="t">18:30</span><span class="s on"></span><span class="s"></span><span class="s on"></span><span class="s on"></span><span class="s"></span>
+
+  <div class="demo-box">
+    <div class="tabs" role="tablist" aria-label="Elige tu tipo de negocio">
+      <button role="tab" aria-selected="true" data-sector="estetica">Estética</button>
+      <button role="tab" aria-selected="false" data-sector="dental">Dental</button>
+      <button role="tab" aria-selected="false" data-sector="fisio">Fisio</button>
+      <button role="tab" aria-selected="false" data-sector="inmo">Inmobiliaria</button>
     </div>
-    <div class="msg">
-      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="var(--accent)"/><path d="M5.5 10.5l3 3 6-6.5" fill="none" stroke="var(--accent-ink)" stroke-width="2.2" stroke-linecap="round"/></svg>
-      <div><b>Cita reservada: jueves 17:00 · Primera valoración</b><time>Mensaje recibido a las 23:14 · respondido a las 23:14</time></div>
+    <div class="phone" aria-label="Ejemplo de conversación de la recepcionista IA">
+      <div class="screen">
+        <div class="chat-head"><span class="av" id="chat-av">L</span><div><b id="chat-nombre">Clínica Lumière</b><small>Asistente virtual · responde al momento</small></div></div>
+        <div class="chat" id="chat" aria-live="polite">
+          <div class="b in">Hola! cuánto cuesta el botox? 😊<time>23:14</time></div>
+          <div class="b out">¡Hola! Las 3 zonas (frente, entrecejo y patas de gallo) están desde 350 €, y la primera valoración con la doctora es gratis. ¿Te busco hueco?<time>23:14</time></div>
+          <div class="b in">Sí, el jueves por la tarde?<time>23:15</time></div>
+          <div class="b out">Tengo jueves a las 17:00 o 18:30. ¿Cuál prefieres? Me dices tu nombre y teléfono y te la dejo reservada.<time>23:15</time></div>
+          <div class="b in">17:00. Laura, 600 123 456<time>23:16</time></div>
+          <div class="b cita"><svg width="22" height="22"><use href="#i-cal"/></svg><span><b>Cita reservada</b><br>Jueves 17:00 · Primera valoración</span></div>
+        </div>
+      </div>
     </div>
+    <p class="demo-note">Conversación de ejemplo. Tu demo usará los servicios y precios reales de tu negocio.</p>
   </div>
 </div></section>
 
-<section><div class="wrap">
+<div class="canales"><div class="wrap">
+  <b>Atiende donde ya te escriben:</b>
+  <span><svg width="18" height="18"><use href="#i-chat"/></svg>WhatsApp</span>
+  <span><svg width="18" height="18"><use href="#i-chat"/></svg>Instagram</span>
+  <span><svg width="18" height="18"><use href="#i-chat"/></svg>Chat de tu web</span>
+  <span><svg width="18" height="18"><use href="#i-users"/></svg>Formularios y anuncios</span>
+  <span><svg width="18" height="18"><use href="#i-star"/></svg>Reseñas de Google</span>
+</div></div>
+
+<section class="s"><div class="wrap">
   <div class="intro">
-    <p class="eyebrow">El problema</p>
-    <h2>Cada mensaje sin contestar es un cliente que se va a la competencia.</h2>
+    <p class="eyebrow">Un día cualquiera en tu negocio</p>
+    <h2>Tus clientes escriben cuando tú no estás.</h2>
+    <p class="muted">Muchos mensajes llegan de noche, a primera hora o en fin de semana. Si la respuesta llega horas después, ese cliente ya ha hablado con otro negocio.</p>
   </div>
-  <div class="cards">
-    <div class="card"><span class="stat">Horas</span><h3>Lo que tardan muchos negocios en responder</h3><p class="muted">Formularios que prometen respuesta "lo antes posible" y teléfonos que nadie coge fuera de horario.</p></div>
-    <div class="card"><span class="stat">Varias</span><h3>Clínicas consultadas a la vez</h3><p class="muted">Quien busca un tratamiento suele escribir a más de un sitio. Gana el primero que responde con claridad y ofrece hora.</p></div>
-    <div class="card"><span class="stat">Olvidados</span><h3>Presupuestos y clientes sin seguimiento</h3><p class="muted">Presupuestos sin respuesta, citas a las que no vienen y clientes antiguos a los que nadie vuelve a escribir.</p></div>
+  <div class="dia">
+    <div>
+      <div class="track" role="img" aria-label="Línea de 24 horas: el negocio abre de 10:00 a 20:00 y llegan mensajes a las 07:50, 12:15, 15:30, 21:40 y 23:14">
+        <span class="open" style="left:41.67%;width:41.67%"></span>
+        <span class="ev" style="left:32.6%" title="07:50"></span>
+        <span class="ev ok" style="left:51%" title="12:15"></span>
+        <span class="ev ok" style="left:64.6%" title="15:30"></span>
+        <span class="ev" style="left:90.3%" title="21:40"></span>
+        <span class="ev" style="left:96.8%" title="23:14"></span>
+      </div>
+      <div class="hours"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+    </div>
+    <div class="leyenda">
+      <span><i style="background:var(--accent-soft);border-radius:3px"></i>Horario de atención</span>
+      <span><i style="background:var(--accent)"></i>Mensaje atendido</span>
+      <span><i style="background:var(--warn)"></i>Mensaje fuera de horario</span>
+    </div>
+    <div class="comparar">
+      <div class="sin"><span class="muted">Sin Atiendia, el mensaje de las 23:14 se responde…</span><b class="big">mañana, 10:00</b><span class="muted">Casi 11 horas de espera.</span></div>
+      <div class="con"><span class="muted">Con Atiendia, se responde…</span><b class="big">a las 23:14</b><span class="muted">Con hueco propuesto y cita reservada.</span></div>
+    </div>
   </div>
 </div></section>
 
-<section id="servicios"><div class="wrap">
+<section class="s alt" id="servicios"><div class="wrap">
   <div class="intro">
     <p class="eyebrow">Qué hacemos por ti</p>
-    <h2>Todo lo que pasa entre "me interesa" y "nos vemos el jueves".</h2>
+    <h2>Todo lo que pasa entre «me interesa» y «nos vemos el jueves».</h2>
   </div>
   <div class="cards">
-    <article class="card"><h3>Recepcionista IA 24/7</h3><p class="muted">En tu web y en WhatsApp. Responde en segundos, resuelve dudas con tu información, pide nombre y teléfono y reserva la cita. Si algo es delicado, avisa a tu equipo.</p></article>
-    <article class="card"><h3>Seguimiento automático</h3><p class="muted">Mensajes a quien preguntó y no reservó, a quien recibió un presupuesto y a quien faltó a su cita. Con tono cercano, nunca invasivo.</p></article>
-    <article class="card"><h3>Reactivación de clientes</h3><p class="muted">Un mensaje personal a cada cliente que no ha vuelto, según lo que se hizo la última vez. Se puede cobrar solo por cita conseguida.</p></article>
-    <article class="card"><h3>Reseñas en Google</h3><p class="muted">Pedimos la reseña tras cada cita y te ayudamos a responder todas, también las negativas, con cuidado y a tiempo.</p></article>
-    <article class="card"><h3>Captación desde tus anuncios</h3><p class="muted">Los contactos de Instagram, Facebook y tus formularios entran directos y reciben respuesta en el momento.</p></article>
-    <article class="card"><h3>Panel de resultados</h3><p class="muted">Ves cada mes cuántos contactos han entrado, cuántas citas se han reservado y cuánto dinero ha generado el sistema.</p></article>
+    <article class="card"><span class="ico"><svg width="24" height="24"><use href="#i-bot"/></svg></span><h3>Recepcionista IA 24/7</h3><p class="muted">Responde en segundos en tu web y en WhatsApp, resuelve dudas con tu información, pide nombre y teléfono y reserva la cita. Si algo es delicado, avisa a tu equipo.</p></article>
+    <article class="card"><span class="ico"><svg width="24" height="24"><use href="#i-cal"/></svg></span><h3>Citas directas en tu agenda</h3><p class="muted">Ofrece huecos reales y confirma. Sin llamadas de ida y vuelta ni mensajes que se quedan a medias.</p></article>
+    <article class="card"><span class="ico"><svg width="24" height="24"><use href="#i-loop"/></svg></span><h3>Seguimiento automático</h3><p class="muted">Escribe a quien preguntó y no reservó, a quien recibió un presupuesto y a quien faltó a su cita. Con tono cercano, nunca insistente.</p></article>
+    <article class="card"><span class="ico"><svg width="24" height="24"><use href="#i-users"/></svg></span><h3>Reactivación de clientes</h3><p class="muted">Un mensaje personal a cada cliente que no ha vuelto, según lo que se hizo la última vez. Puedes pagar solo por cita conseguida.</p></article>
+    <article class="card"><span class="ico"><svg width="24" height="24"><use href="#i-star"/></svg></span><h3>Más reseñas en Google</h3><p class="muted">Pedimos la reseña después de cada cita y te ayudamos a responderlas todas, también las negativas.</p></article>
+    <article class="card"><span class="ico"><svg width="24" height="24"><use href="#i-chart"/></svg></span><h3>Resultados que puedes ver</h3><p class="muted">Un panel con contactos, citas reservadas y dinero generado. Cada mes sabes exactamente qué te aporta.</p></article>
   </div>
 </div></section>
 
-<section><div class="wrap">
+<section class="s" id="calculadora"><div class="wrap">
   <div class="intro">
-    <p class="eyebrow">Para quién</p>
-    <h2>Negocios donde cada cliente vale cientos o miles de euros.</h2>
+    <p class="eyebrow">Calculadora</p>
+    <h2>¿Cuánto dinero se te escapa cada mes?</h2>
+    <p class="muted">Mueve los controles con los datos de tu negocio.</p>
   </div>
-  <div class="chips">
-    <span class="chip">Clínicas de medicina estética</span><span class="chip">Clínicas dentales</span><span class="chip">Injerto capilar</span>
-    <span class="chip">Fisioterapia y osteopatía</span><span class="chip">Veterinarias</span><span class="chip">Cirugía estética</span>
-    <span class="chip">Inmobiliarias</span><span class="chip">Reformas y placas solares</span><span class="chip">Academias</span><span class="chip">Despachos de abogados</span>
+  <div class="calc">
+    <div class="inputs">
+      <div class="slider">
+        <label for="c-leads">Personas que te escriben o llaman al mes <output id="o-leads" for="c-leads">80</output></label>
+        <input type="range" id="c-leads" min="10" max="500" step="10" value="80">
+      </div>
+      <div class="slider">
+        <label for="c-ticket">Lo que gasta de media un cliente <output id="o-ticket" for="c-ticket">600 €</output></label>
+        <input type="range" id="c-ticket" min="50" max="5000" step="50" value="600">
+      </div>
+      <p class="muted" style="font-size:.88rem">Supuestos prudentes: responder en menos de un minuto sube del 25 % al 40 % las personas que piden cita, y la mitad de las citas acaban en venta. En tu demo lo calculamos con tus datos reales.</p>
+    </div>
+    <div class="res" aria-live="polite">
+      <small>Podrías estar dejando de ingresar</small>
+      <div class="perdida" id="o-perdida">3.600 €</div>
+      <small>al mes, solo por no responder a tiempo.</small>
+      <div class="mini">
+        <div><b id="o-clientes">6</b><small>clientes más al mes</small></div>
+        <div><b id="o-anual">43.200 €</b><small>al año</small></div>
+      </div>
+      <a class="btn" href="#demo" style="justify-self:start;margin-top:6px">Recupéralos con tu demo gratis</a>
+    </div>
   </div>
 </div></section>
 
-<section id="como"><div class="wrap">
+<section class="s alt" id="como"><div class="wrap">
   <div class="intro">
     <p class="eyebrow">Cómo funciona</p>
-    <h2>Ves tu demo antes de pagar nada.</h2>
+    <h2>Pruebas tu demo antes de pagar nada.</h2>
   </div>
   <ol class="pasos">
-    <li><h3>Cuéntanos tu negocio</h3><p class="muted">Rellena el formulario en 2 minutos: a qué te dedicas, cuántos clientes te escriben y qué te gustaría mejorar.</p></li>
-    <li><h3>Recibe tu demo en 48 h</h3><p class="muted">Preparamos una recepcionista con el nombre, los servicios y los precios de tu negocio. La pruebas como si fueras un cliente.</p></li>
-    <li><h3>Presupuesto cerrado</h3><p class="muted">Te enviamos un precio ajustado a tu volumen, sin letra pequeña. Si encaja, en dos semanas está funcionando.</p></li>
+    <li><span class="cuando">2 minutos</span><h3>Cuéntanos tu negocio</h3><p class="muted">Rellenas el formulario: a qué te dedicas, cuántos clientes te escriben y qué quieres mejorar.</p></li>
+    <li><span class="cuando">48 horas</span><h3>Recibes tu demo</h3><p class="muted">Una recepcionista con el nombre, los servicios y los precios de tu negocio. La pruebas escribiéndole como si fueras un cliente.</p></li>
+    <li><span class="cuando">2 semanas</span><h3>Funcionando en tu negocio</h3><p class="muted">Si te convence, te enviamos un presupuesto cerrado y lo dejamos instalado en tu web y tu WhatsApp.</p></li>
   </ol>
 </div></section>
 
-<section id="precios"><div class="wrap">
+<section class="s" id="precios"><div class="wrap">
   <div class="intro">
     <p class="eyebrow">Precios</p>
-    <h2>Desde menos de lo que cuesta un cliente perdido al mes.</h2>
-    <p class="muted">Precios orientativos sin IVA. El presupuesto final depende de tu volumen y se cierra después de ver la demo.</p>
+    <h2>Menos de lo que te cuesta un cliente perdido.</h2>
+    <p class="muted">Precios orientativos sin IVA. El presupuesto final depende de tu volumen y se cierra después de ver tu demo.</p>
   </div>
   <div class="planes">
-    <div class="plan"><h3>Esencial</h3><div class="precio">497 € <small>/mes</small></div><p class="muted">Puesta en marcha desde 997 €</p>
-      <ul><li>Recepcionista IA en web y WhatsApp</li><li>Reserva de citas</li><li>Informe mensual</li></ul></div>
+    <div class="plan"><h3>A resultados</h3><div class="precio">0 € <small>de entrada</small></div><p class="muted">Solo pagas por cita conseguida</p>
+      <ul><li><svg width="16" height="16"><use href="#i-check"/></svg>Campaña para recuperar clientes antiguos</li><li><svg width="16" height="16"><use href="#i-check"/></svg>Sin cuota mensual</li><li><svg width="16" height="16"><use href="#i-check"/></svg>La forma más fácil de empezar</li></ul></div>
     <div class="plan dest"><span class="badge">Recomendado</span><h3>Crecimiento</h3><div class="precio">997 € <small>/mes</small></div><p class="muted">Puesta en marcha desde 1.997 €</p>
-      <ul><li>Todo lo de Esencial</li><li>Seguimiento y recuperación de citas perdidas</li><li>Gestión de reseñas</li><li>Reactivación de clientes cada trimestre</li></ul></div>
-    <div class="plan"><h3>A resultados</h3><div class="precio">0 € <small>de entrada</small></div><p class="muted">Pagas solo por cita conseguida</p>
-      <ul><li>Campaña de reactivación de tus clientes antiguos</li><li>Ideal para empezar a trabajar juntos</li><li>Sin riesgo para ti</li></ul></div>
-  </div>
-  <div class="garantia">
-    <h3>Garantía Atiendia</h3>
-    <p>Si en 60 días el sistema no te genera citas por al menos el doble de tu cuota mensual, seguimos trabajando sin cobrarte la cuota hasta conseguirlo.</p>
+      <ul><li><svg width="16" height="16"><use href="#i-check"/></svg>Recepcionista IA en web y WhatsApp</li><li><svg width="16" height="16"><use href="#i-check"/></svg>Seguimiento y recuperación de citas perdidas</li><li><svg width="16" height="16"><use href="#i-check"/></svg>Gestión de reseñas</li><li><svg width="16" height="16"><use href="#i-check"/></svg>Reactivación de clientes cada trimestre</li><li><svg width="16" height="16"><use href="#i-check"/></svg>Panel e informe mensual</li></ul></div>
+    <div class="plan"><h3>Esencial</h3><div class="precio">497 € <small>/mes</small></div><p class="muted">Puesta en marcha desde 997 €</p>
+      <ul><li><svg width="16" height="16"><use href="#i-check"/></svg>Recepcionista IA en web y WhatsApp</li><li><svg width="16" height="16"><use href="#i-check"/></svg>Reserva de citas</li><li><svg width="16" height="16"><use href="#i-check"/></svg>Informe mensual</li></ul></div>
   </div>
 </div></section>
 
-<section id="quien"><div class="wrap yo">
+<section class="s alt"><div class="wrap">
+  <div class="intro center"><p class="eyebrow">Trabajar con tranquilidad</p><h2>Sin riesgos y sin letra pequeña.</h2></div>
+  <div class="sellos">
+    <div class="sello"><span class="ico"><svg width="24" height="24"><use href="#i-badge"/></svg></span><div><b>Garantía de 60 días</b><p>Si no te genera citas por al menos el doble de tu cuota, seguimos sin cobrarte la cuota hasta conseguirlo.</p></div></div>
+    <div class="sello"><span class="ico"><svg width="24" height="24"><use href="#i-shield"/></svg></span><div><b>Datos protegidos (RGPD)</b><p>Contrato de encargado del tratamiento. Los datos de tus clientes son tuyos.</p></div></div>
+    <div class="sello"><span class="ico"><svg width="24" height="24"><use href="#i-bot"/></svg></span><div><b>IA transparente</b><p>Tus clientes saben que hablan con un asistente, como pide la normativa europea, y pueden pedir una persona.</p></div></div>
+    <div class="sello"><span class="ico"><svg width="24" height="24"><use href="#i-unlock"/></svg></span><div><b>Sin ataduras</b><p>Permanencia mínima de 3 meses. Después, mes a mes.</p></div></div>
+  </div>
+</div></section>
+
+<section class="s" id="quien"><div class="wrap yo">
   <div class="foto" aria-hidden="true"><!-- Sustituye por <img src="foto.jpg" alt=""> -->A</div>
-  <div style="display:grid;gap:12px;max-width:62ch">
+  <div style="display:grid;gap:14px;max-width:62ch">
     <p class="eyebrow">Quién está detrás</p>
     <h2>Hola, soy [Tu nombre].</h2>
-    <p>Fundé Atiendia porque vi que muchas clínicas invierten en anuncios y luego pierden a los pacientes por no contestar a tiempo. Trabajo directamente con cada negocio: preparo tu demo, la ajusto contigo y reviso cada mes que todo funcione.</p>
-    <p class="muted">Sin intermediarios ni centralitas: hablas siempre conmigo.</p>
+    <p>Fundé Atiendia porque vi que muchas clínicas invierten en anuncios y después pierden a los pacientes por no poder contestar a tiempo. No es falta de ganas: es que nadie puede estar pendiente del móvil a las 23:00.</p>
+    <p>Trabajo directamente con cada negocio. Preparo tu demo, la ajusto contigo y reviso cada mes que todo funcione. Hablas siempre conmigo.</p>
+    <span class="firma">[Tu nombre]</span>
   </div>
 </div></section>
 
-<section id="opiniones"><div class="wrap">
-  <div class="intro">
-    <p class="eyebrow">Opiniones en Google</p>
-    <h2>Lo que dicen los negocios que trabajan con Atiendia.</h2>
-  </div>
+<section class="s alt" id="opiniones"><div class="wrap">
+  <div class="intro center"><p class="eyebrow">Opiniones en Google</p><h2>Lo que dicen quienes trabajan con nosotros.</h2></div>
   <div id="resenas" class="resenas"></div>
   <div id="resenas-vacio" class="resena-vacia">
+    <span class="ico"><svg width="24" height="24"><use href="#i-star"/></svg></span>
     <h3>Estamos sumando nuestras primeras opiniones</h3>
-    <p class="muted">Atiendia acaba de empezar y estamos trabajando con los primeros negocios en condiciones especiales de lanzamiento. Si quieres ser uno de ellos, pide tu demo.</p>
+    <p class="muted">Atiendia acaba de empezar y trabajamos con los primeros negocios en condiciones especiales de lanzamiento. ¿Quieres ser uno de ellos?</p>
     <p><a href="https://g.page/r/TU-ENLACE-DE-GOOGLE/review" rel="noopener" target="_blank">Ver Atiendia en Google</a></p>
   </div>
 </div></section>
 
-<section id="preguntas"><div class="wrap">
-  <div class="intro"><p class="eyebrow">Preguntas frecuentes</p><h2>Lo que nos suelen preguntar.</h2></div>
-  <div>
-    <details><summary>¿La IA puede decir algo incorrecto a mis pacientes?</summary><p>Solo responde con la información de tu negocio que tú validas: servicios, precios desde, horarios y políticas. No da diagnósticos ni promete resultados, y pasa la conversación a tu equipo cuando hay quejas, urgencias o alguien pide hablar con una persona.</p></details>
+<section class="s" id="preguntas"><div class="wrap">
+  <div class="intro center"><p class="eyebrow">Preguntas frecuentes</p><h2>Lo que nos suelen preguntar.</h2></div>
+  <div class="faq">
+    <details><summary>¿La IA puede decir algo incorrecto a mis clientes?</summary><p>Solo responde con la información de tu negocio que tú validas: servicios, precios desde, horarios y políticas. No da diagnósticos ni promete resultados, y pasa la conversación a tu equipo cuando hay quejas, urgencias o alguien pide hablar con una persona.</p></details>
     <details><summary>¿Sustituye a mi recepcionista?</summary><p>No. Cubre noches, fines de semana y picos de mensajes, y deja a tu equipo los contactos ya calificados y con cita.</p></details>
-    <details><summary>¿Saben mis clientes que hablan con una IA?</summary><p>Sí, lo indicamos de forma clara, como exige la normativa europea. En la práctica lo que valoran es que les contesten al momento.</p></details>
+    <details><summary>¿Saben mis clientes que hablan con una IA?</summary><p>Sí, lo indicamos de forma clara, como exige la normativa europea. En la práctica, lo que valoran es que les contesten al momento.</p></details>
     <details><summary>¿Cuánto tarda en estar funcionando?</summary><p>La demo con el nombre de tu negocio está lista en 48 horas. La puesta en marcha completa lleva unas dos semanas.</p></details>
     <details><summary>¿Cumple con el RGPD?</summary><p>Sí. Firmamos un contrato de encargado del tratamiento, los datos son tuyos y cada mensaje comercial incluye una forma sencilla de darse de baja.</p></details>
     <details><summary>¿Tengo que cambiar mi programa de citas?</summary><p>No. Nos adaptamos a cómo trabajas hoy y te proponemos la integración más sencilla.</p></details>
   </div>
 </div></section>
 
-<section id="demo"><div class="wrap form-wrap">
-  <div style="display:grid;gap:14px">
-    <p class="eyebrow">Demo gratis</p>
-    <h2>Cuéntanos tu negocio y te preparamos tu demo.</h2>
-    <p class="muted">En 48 horas recibirás un enlace para probar tu recepcionista con el nombre, los servicios y los precios de tu negocio, junto con un presupuesto cerrado. Sin compromiso.</p>
-    <p class="muted">¿Prefieres escribir directamente? <strong>hola@atiendia.es</strong></p>
+<section class="s cta-band" id="demo"><div class="wrap form-wrap">
+  <div style="display:grid;gap:16px">
+    <p class="eyebrow">Demo gratis y sin compromiso</p>
+    <h2>Te preparamos tu recepcionista en 48 horas.</h2>
+    <p class="muted">Cuéntanos tu negocio en tres pasos rápidos.</p>
+    <ul class="beneficios">
+      <li><svg width="20" height="20"><use href="#i-check"/></svg><span>Una demo con el nombre, los servicios y los precios de tu negocio, para que la pruebes tú.</span></li>
+      <li><svg width="20" height="20"><use href="#i-check"/></svg><span>Un cálculo de cuántos clientes podrías recuperar.</span></li>
+      <li><svg width="20" height="20"><use href="#i-check"/></svg><span>Un presupuesto cerrado y ajustado a tu volumen.</span></li>
+    </ul>
+    <p class="muted">¿Prefieres escribir directamente? <strong style="color:var(--night-ink)">hola@atiendia.es</strong></p>
   </div>
-  <form class="demo" name="solicitud-demo" method="POST" action="gracias.html" data-netlify="true" netlify-honeypot="empresa-web" id="form-demo">
+
+  <form class="demo" name="solicitud-demo" method="POST" action="gracias.html" data-netlify="true" netlify-honeypot="empresa-web" id="form-demo" novalidate>
     <input type="hidden" name="form-name" value="solicitud-demo">
     <p class="oculto"><label>No rellenar <input name="empresa-web" id="empresa-web" tabindex="-1" autocomplete="off"></label></p>
-    <div class="fila">
-      <label for="nombre">Tu nombre<input id="nombre" name="nombre" required autocomplete="name"></label>
-      <label for="negocio">Nombre del negocio<input id="negocio" name="negocio" required autocomplete="organization"></label>
-    </div>
-    <div class="fila">
-      <label for="email">Email<input id="email" name="email" type="email" required autocomplete="email"></label>
-      <label for="telefono">Teléfono<input id="telefono" name="telefono" type="tel" autocomplete="tel"></label>
-    </div>
-    <div class="fila">
-      <label for="tipo">Tipo de negocio
-        <select id="tipo" name="tipo" required>
-          <option value="">Elige una opción</option>
-          <option>Clínica de medicina estética</option><option>Clínica dental</option><option>Injerto capilar</option>
-          <option>Fisioterapia u osteopatía</option><option>Veterinaria</option><option>Cirugía estética</option>
-          <option>Inmobiliaria</option><option>Reformas o placas solares</option><option>Academia o formación</option>
-          <option>Despacho profesional</option><option>Otro</option>
-        </select></label>
-      <label for="volumen">Contactos que recibes al mes
-        <select id="volumen" name="volumen">
-          <option value="">No lo sé</option><option>Menos de 30</option><option>30-100</option><option>100-300</option><option>Más de 300</option>
-        </select></label>
-    </div>
-    <label for="web">Web o Instagram<input id="web" name="web" placeholder="www.tunegocio.es o @tunegocio"></label>
-    <fieldset>
-      <legend>¿Qué te gustaría mejorar?</legend>
-      <div class="checks">
-        <label><input type="checkbox" name="necesidad" value="Responder 24/7"> Responder a todos, también fuera de horario</label>
-        <label><input type="checkbox" name="necesidad" value="Reservar citas"> Que reserven cita solos</label>
-        <label><input type="checkbox" name="necesidad" value="WhatsApp"> Atender WhatsApp e Instagram</label>
-        <label><input type="checkbox" name="necesidad" value="Seguimiento"> Seguimiento de presupuestos y citas perdidas</label>
-        <label><input type="checkbox" name="necesidad" value="Reactivar clientes"> Recuperar clientes antiguos</label>
-        <label><input type="checkbox" name="necesidad" value="Reseñas"> Conseguir más reseñas en Google</label>
+    <div class="progreso"><small id="paso-txt">Paso 1 de 3</small><div class="barra"><i id="paso-barra"></i></div></div>
+
+    <fieldset class="paso" data-paso="1">
+      <legend>¿Qué tipo de negocio tienes?</legend>
+      <div class="opciones">
+        <label class="opcion"><input type="radio" name="tipo" value="Medicina estética" required><span>Medicina estética</span></label>
+        <label class="opcion"><input type="radio" name="tipo" value="Clínica dental"><span>Clínica dental</span></label>
+        <label class="opcion"><input type="radio" name="tipo" value="Injerto capilar"><span>Injerto capilar</span></label>
+        <label class="opcion"><input type="radio" name="tipo" value="Fisioterapia"><span>Fisioterapia</span></label>
+        <label class="opcion"><input type="radio" name="tipo" value="Veterinaria"><span>Veterinaria</span></label>
+        <label class="opcion"><input type="radio" name="tipo" value="Cirugía estética"><span>Cirugía estética</span></label>
+        <label class="opcion"><input type="radio" name="tipo" value="Inmobiliaria"><span>Inmobiliaria</span></label>
+        <label class="opcion"><input type="radio" name="tipo" value="Reformas o solar"><span>Reformas o solar</span></label>
+        <label class="opcion"><input type="radio" name="tipo" value="Otro"><span>Otro</span></label>
       </div>
     </fieldset>
-    <label for="mensaje">¿Algo más que debamos saber?<textarea id="mensaje" name="mensaje" placeholder="Por ejemplo: tratamientos principales, horario, qué te preocupa hoy…"></textarea></label>
-    <label class="consent" for="privacidad"><input type="checkbox" id="privacidad" name="privacidad" value="acepto" required> <span>He leído y acepto la <a href="privacidad.html">política de privacidad</a>. Usaremos tus datos solo para preparar tu demo y contactarte.</span></label>
-    <button class="btn" type="submit">Quiero mi demo gratis</button>
+
+    <fieldset class="paso" data-paso="2">
+      <legend>¿Qué te gustaría mejorar?</legend>
+      <div class="opciones">
+        <label class="opcion"><input type="checkbox" name="necesidad" value="Responder 24/7"><span>Responder a todos, también de noche</span></label>
+        <label class="opcion"><input type="checkbox" name="necesidad" value="Reservar citas"><span>Que reserven cita solos</span></label>
+        <label class="opcion"><input type="checkbox" name="necesidad" value="WhatsApp e Instagram"><span>Atender WhatsApp e Instagram</span></label>
+        <label class="opcion"><input type="checkbox" name="necesidad" value="Seguimiento"><span>Seguimiento de presupuestos</span></label>
+        <label class="opcion"><input type="checkbox" name="necesidad" value="Reactivar clientes"><span>Recuperar clientes antiguos</span></label>
+        <label class="opcion"><input type="checkbox" name="necesidad" value="Reseñas"><span>Más reseñas en Google</span></label>
+      </div>
+      <label class="campo" for="volumen">¿Cuántas personas te escriben o llaman al mes?
+        <select id="volumen" name="volumen"><option value="">No lo sé</option><option>Menos de 30</option><option>30-100</option><option>100-300</option><option>Más de 300</option></select></label>
+    </fieldset>
+
+    <fieldset class="paso" data-paso="3">
+      <legend>¿A quién enviamos tu demo?</legend>
+      <div class="fila">
+        <label class="campo" for="nombre">Tu nombre<input id="nombre" name="nombre" required autocomplete="name"></label>
+        <label class="campo" for="negocio">Nombre del negocio<input id="negocio" name="negocio" required autocomplete="organization"></label>
+      </div>
+      <div class="fila">
+        <label class="campo" for="email">Email<input id="email" name="email" type="email" required autocomplete="email"></label>
+        <label class="campo" for="telefono">Teléfono<input id="telefono" name="telefono" type="tel" autocomplete="tel"></label>
+      </div>
+      <label class="campo" for="web">Web o Instagram<input id="web" name="web" placeholder="www.tunegocio.es o @tunegocio"></label>
+      <label class="campo" for="mensaje">¿Algo más que debamos saber? (opcional)<textarea id="mensaje" name="mensaje" placeholder="Tratamientos principales, horario, qué te preocupa hoy…"></textarea></label>
+      <label class="consent" for="privacidad"><input type="checkbox" id="privacidad" name="privacidad" value="acepto" required><span>Acepto la <a href="privacidad.html">política de privacidad</a>. Solo usaremos tus datos para preparar tu demo y contactarte.</span></label>
+    </fieldset>
+
+    <div class="nav-form">
+      <button type="button" class="btn ghost" id="atras" hidden>Atrás</button>
+      <button type="button" class="btn" id="siguiente" style="margin-left:auto">Siguiente <svg width="18" height="18"><use href="#i-arrow"/></svg></button>
+      <button type="submit" class="btn" id="enviar" style="margin-left:auto">Quiero mi demo gratis</button>
+    </div>
     <p class="estado" id="estado" role="status" aria-live="polite"></p>
   </form>
 </div></section>
 </main>
 
+<a class="btn flotante" href="#demo">Pide tu demo gratis</a>
+
 <footer><div class="wrap">
-  <span>© <span id="anio">2026</span> Atiendia · [Tu nombre]</span>
-  <span><a href="aviso-legal.html">Aviso legal</a> · <a href="privacidad.html">Privacidad</a> · hola@atiendia.es</span>
+  <a class="logo" href="#inicio"><svg width="26" height="26"><use href="#logo"/></svg>Atiendia</a>
+  <span>© <span id="anio">2026</span> Atiendia · [Tu nombre] · hola@atiendia.es</span>
+  <span><a href="aviso-legal.html">Aviso legal</a> · <a href="privacidad.html">Privacidad</a></span>
 </div></footer>
 
 <script>
 /* Opiniones reales de Google: cópialas aquí cuando las tengas (nunca inventadas).
-   Ejemplo: { autor: "Clínica X", estrellas: 5, texto: "...", fecha: "octubre 2026" } */
+   Ejemplo: { autor: "Nombre · Negocio", estrellas: 5, texto: "...", fecha: "noviembre 2026" } */
 var RESENAS = [];
 
 (function () {
-  var cont = document.getElementById("resenas"), vacio = document.getElementById("resenas-vacio");
+  var reducido = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function $(id) { return document.getElementById(id); }
+
+  /* ---------- Conversación animada por sector ---------- */
+  var GUIONES = {
+    estetica: { nombre: "Clínica Lumière", ini: "L", msgs: [
+      ["in", "Hola! cuánto cuesta el botox? 😊", "23:14"],
+      ["out", "¡Hola! Las 3 zonas (frente, entrecejo y patas de gallo) están desde 350 €, y la primera valoración con la doctora es gratis. ¿Te busco hueco?", "23:14"],
+      ["in", "Sí, el jueves por la tarde?", "23:15"],
+      ["out", "Tengo jueves a las 17:00 o 18:30. ¿Cuál prefieres? Me dices tu nombre y teléfono y te la dejo reservada.", "23:15"],
+      ["in", "17:00. Laura, 600 123 456", "23:16"],
+      ["cita", "Jueves 17:00 · Primera valoración"]]},
+    dental: { nombre: "Dental Sonrisa Norte", ini: "S", msgs: [
+      ["in", "Buenas, hacéis ortodoncia invisible? precio?", "22:41"],
+      ["out", "¡Hola! Sí, trabajamos con alineadores invisibles. El precio depende de cada caso; suele estar desde 2.900 € y hay financiación sin intereses. El estudio inicial es gratis.", "22:41"],
+      ["in", "Vale y cuándo podría ir?", "22:42"],
+      ["out", "Tengo lunes a las 10:30 o martes a las 19:00. ¿Te va bien alguno?", "22:42"],
+      ["in", "El martes. Javier, 611 234 567", "22:43"],
+      ["cita", "Martes 19:00 · Estudio de ortodoncia"]]},
+    fisio: { nombre: "Fisio Activa", ini: "F", msgs: [
+      ["in", "Hola, me duele la espalda desde hace una semana, tenéis cita mañana?", "07:52"],
+      ["out", "Hola, siento lo de tu espalda. Mañana tengo hueco a las 9:00 y a las 13:30 para una primera sesión de valoración (50 min, 45 €). ¿Cuál te viene mejor?", "07:52"],
+      ["in", "A las 13:30 porfa", "07:53"],
+      ["out", "¡Hecho! ¿Me dices tu nombre y teléfono para confirmarla?", "07:53"],
+      ["in", "Marta, 622 345 678", "07:53"],
+      ["cita", "Mañana 13:30 · Valoración de fisioterapia"]]},
+    inmo: { nombre: "Inmobiliaria Puerto", ini: "P", msgs: [
+      ["in", "Hola, sigue disponible el piso de 3 habitaciones de la calle Mayor?", "21:37"],
+      ["out", "¡Hola! Sí, sigue disponible: 3 habitaciones, 2 baños, 98 m² y garaje incluido, por 245.000 €. ¿Te gustaría visitarlo?", "21:37"],
+      ["in", "Sí, el sábado por la mañana?", "21:38"],
+      ["out", "Puedo ofrecerte el sábado a las 10:00 o a las 11:30 con nuestro agente. ¿Cuál prefieres?", "21:38"],
+      ["in", "11:30. Carlos, 633 456 789", "21:39"],
+      ["cita", "Sábado 11:30 · Visita al piso de la calle Mayor"]]}
+  };
+  var chat = $("chat"), timers = [], actual = "estetica";
+
+  function burbuja(m) {
+    var d = document.createElement("div");
+    if (m[0] === "cita") {
+      d.className = "b cita";
+      d.innerHTML = '<svg width="22" height="22"><use href="#i-cal"/></svg><span><b>Cita reservada</b><br></span>';
+      d.querySelector("span").appendChild(document.createTextNode(m[1]));
+    } else {
+      d.className = "b " + m[0];
+      d.textContent = m[1];
+      var t = document.createElement("time"); t.textContent = m[2]; d.appendChild(t);
+    }
+    return d;
+  }
+  function limpiar() { timers.forEach(clearTimeout); timers = []; }
+  function reproducir(sector) {
+    limpiar(); actual = sector;
+    var g = GUIONES[sector];
+    $("chat-nombre").textContent = g.nombre; $("chat-av").textContent = g.ini;
+    chat.innerHTML = "";
+    if (reducido) { g.msgs.forEach(function (m) { chat.appendChild(burbuja(m)); }); return; }
+    var t = 300;
+    g.msgs.forEach(function (m) {
+      if (m[0] === "out") {
+        timers.push(setTimeout(function () {
+          var ty = document.createElement("div"); ty.className = "typing"; ty.innerHTML = "<i></i><i></i><i></i>";
+          ty.id = "typing"; chat.appendChild(ty);
+        }, t));
+        t += 1100;
+        timers.push(setTimeout(function () { var ty = $("typing"); if (ty) ty.remove(); chat.appendChild(burbuja(m)); }, t));
+      } else {
+        timers.push(setTimeout(function () { chat.appendChild(burbuja(m)); }, t));
+      }
+      t += m[0] === "in" ? 1300 : 1500;
+    });
+    timers.push(setTimeout(function () { reproducir(actual); }, t + 4000));
+  }
+  document.querySelectorAll(".tabs button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll(".tabs button").forEach(function (x) { x.setAttribute("aria-selected", x === b ? "true" : "false"); });
+      reproducir(b.dataset.sector);
+    });
+  });
+  /* La conversación completa se ve desde el principio; la animación empieza a los pocos segundos. */
+  if (!reducido) timers.push(setTimeout(function () { reproducir("estetica"); }, 3500));
+
+  /* ---------- Calculadora ---------- */
+  var eur = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+  function calc() {
+    var leads = +$("c-leads").value, ticket = +$("c-ticket").value;
+    var extra = leads * (0.40 - 0.25) * 0.5, mes = extra * ticket;
+    $("o-leads").textContent = leads;
+    $("o-ticket").textContent = eur.format(ticket);
+    $("o-perdida").textContent = eur.format(mes);
+    $("o-clientes").textContent = extra.toLocaleString("es-ES", { maximumFractionDigits: 1 });
+    $("o-anual").textContent = eur.format(mes * 12);
+  }
+  $("c-leads").addEventListener("input", calc); $("c-ticket").addEventListener("input", calc); calc();
+
+  /* ---------- Reseñas ---------- */
+  var cont = $("resenas");
   if (RESENAS.length) {
-    vacio.hidden = true;
+    $("resenas-vacio").hidden = true;
     RESENAS.forEach(function (r) {
       var a = document.createElement("article"); a.className = "resena";
-      var e = document.createElement("span"); e.className = "estrellas"; e.textContent = "★★★★★".slice(0, r.estrellas); e.setAttribute("aria-label", r.estrellas + " de 5 estrellas");
+      var e = document.createElement("span"); e.className = "estrellas"; e.textContent = "★★★★★".slice(0, r.estrellas);
+      e.setAttribute("aria-label", r.estrellas + " de 5 estrellas");
       var t = document.createElement("p"); t.textContent = "«" + r.texto + "»";
       var p = document.createElement("p"); p.className = "muted"; p.textContent = r.autor + (r.fecha ? " · " + r.fecha : "");
       a.append(e, t, p); cont.appendChild(a);
     });
   } else { cont.hidden = true; }
-  document.getElementById("anio").textContent = new Date().getFullYear();
+  $("anio").textContent = new Date().getFullYear();
 
-  /* Envío del formulario a Netlify Forms sin recargar; si falla, se avisa con el email de contacto. */
-  var f = document.getElementById("form-demo"), estado = document.getElementById("estado");
+  /* ---------- Formulario por pasos ---------- */
+  var f = $("form-demo"), pasos = f.querySelectorAll(".paso"), n = 1, estado = $("estado");
+  function mostrar() {
+    pasos.forEach(function (p) { p.hidden = +p.dataset.paso !== n; });
+    $("paso-txt").textContent = "Paso " + n + " de 3";
+    $("paso-barra").style.width = (n / 3 * 100) + "%";
+    $("atras").hidden = n === 1; $("siguiente").hidden = n === 3; $("enviar").hidden = n !== 3;
+    estado.textContent = "";
+  }
+  function valido() {
+    if (n === 1 && !f.querySelector('input[name="tipo"]:checked')) { estado.className = "estado error"; estado.textContent = "Elige el tipo de negocio para continuar."; return false; }
+    if (n === 3) {
+      var campos = pasos[2].querySelectorAll("input[required]");
+      for (var i = 0; i < campos.length; i++) { if (!campos[i].checkValidity()) { campos[i].reportValidity(); return false; } }
+    }
+    return true;
+  }
+  $("siguiente").addEventListener("click", function () { if (valido()) { n++; mostrar(); pasos[n - 1].querySelector("input,select").focus(); } });
+  $("atras").addEventListener("click", function () { n--; mostrar(); });
+  mostrar();
+
+  /* Envío a Netlify Forms sin recargar; si falla, se ofrece el email. */
   f.addEventListener("submit", function (ev) {
     ev.preventDefault();
-    if (!f.checkValidity()) { f.reportValidity(); return; }
+    if (!valido()) return;
     estado.className = "estado"; estado.textContent = "Enviando…";
     fetch("/", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
                  body: new URLSearchParams(new FormData(f)).toString() })
