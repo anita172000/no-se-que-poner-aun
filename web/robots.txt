@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /gracias.html
+Sitemap: https://atiendia.es/sitemap.xml
