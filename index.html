@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agencia Respuesta 60</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: columna de lectura de 68ch con bandas a ancho completo; el reloj de respuesta (60 s) es el hilo visual. */
+:root{
+  --bg:#f2f5f4; --surface:#ffffff; --ink:#132321; --muted:#5a6b68; --line:#d5dfdc;
+  --accent:#0b7a68; --accent-soft:#dcefe9; --signal:#c2410c; --signal-soft:#fbe7dc; --code:#e9efed;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1918; --surface:#162321; --ink:#e6efed; --muted:#9aaeaa; --line:#2a3b38;
+  --accent:#3cc7ad; --accent-soft:#163a34; --signal:#fb8f5c; --signal-soft:#3a2219; --code:#1c2b29; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1918; --surface:#162321; --ink:#e6efed; --muted:#9aaeaa; --line:#2a3b38;
+  --accent:#3cc7ad; --accent-soft:#163a34; --signal:#fb8f5c; --signal-soft:#3a2219; --code:#1c2b29; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--body);margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:max(16px,4vw)}
+.read{max-width:68ch}
+h1,h2,h3{font-family:var(--display);line-height:1.12;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.2rem,5.5vw,4rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(1.6rem,3.2vw,2.3rem);font-weight:700;letter-spacing:-.01em}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0}
+a{color:var(--accent)}
+code,pre{font-family:var(--mono);font-size:.88em}
+code{background:var(--code);padding:.1em .35em;border-radius:4px}
+.eyebrow{font:500 .78rem/1 var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--accent)}
+.muted{color:var(--muted)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+nav.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+nav.top .wrap{display:flex;gap:18px;align-items:center;overflow-x:auto;padding-block:10px;white-space:nowrap}
+nav.top b{font-family:var(--display);font-size:1.05rem;margin-right:auto}
+nav.top a{color:var(--muted);text-decoration:none;font-size:.9rem}
+nav.top a:hover{color:var(--ink)}
+
+header.hero{padding-block:56px 40px}
+.hero-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:40px;align-items:center}
+.hero-grid>*{min-width:0}
+.lede{font-size:1.15rem;color:var(--muted);margin-top:18px;max-width:58ch}
+.lede strong{color:var(--ink)}
+.clock{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:grid;gap:18px}
+.lane{display:grid;gap:6px}
+.lane .lbl{display:flex;justify-content:space-between;font:500 .8rem var(--mono);color:var(--muted)}
+.bar{height:12px;border-radius:6px;background:var(--code);position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;border-radius:6px}
+.slow i{width:100%;background:var(--signal)}
+.fast i{width:.06%;min-width:6px;background:var(--accent)}
+.lane .big{font:700 1.7rem var(--display);font-variant-numeric:tabular-nums}
+.slow .big{color:var(--signal)} .fast .big{color:var(--accent)}
+.clock small{color:var(--muted);font-size:.85rem}
+
+section{padding-block:56px;border-top:1px solid var(--line)}
+section>.wrap{display:grid;gap:26px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px}
+.cols>*{min-width:0}
+.mod{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:grid;gap:8px;align-content:start}
+.mod .file{font:400 .78rem var(--mono);color:var(--muted);word-break:break-all}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:.93rem}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font:500 .75rem var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.win td{background:var(--accent-soft)}
+
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:18px}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px;display:grid;gap:10px;align-content:start}
+.plan.rec{border:2px solid var(--accent)}
+.plan .price{font:800 2rem var(--display);font-variant-numeric:tabular-nums}
+.plan .price span{font:400 .95rem var(--body);color:var(--muted)}
+.pill{display:inline-block;font:500 .72rem var(--mono);text-transform:uppercase;letter-spacing:.08em;padding:4px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);justify-self:start}
+.pill.warm{background:var(--signal-soft);color:var(--signal)}
+ul.tight{margin:0;padding-left:1.1em;display:grid;gap:4px}
+.callout{background:var(--signal-soft);border-radius:12px;padding:20px 22px;display:grid;gap:8px}
+.callout h3{color:var(--signal)}
+
+.calc{display:grid;grid-template-columns:1fr 1.2fr;gap:24px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px}
+.calc>*{min-width:0}
+.calc form{display:grid;gap:14px}
+.calc label{display:grid;gap:6px;font-size:.9rem;font-weight:500}
+.calc input,.calc select{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%}
+.out{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.out div{border-top:2px solid var(--line);padding-top:10px}
+.out b{display:block;font:800 1.6rem var(--display);font-variant-numeric:tabular-nums}
+.out div.hl{border-color:var(--accent)} .out div.hl b{color:var(--accent)}
+.out span{font-size:.85rem;color:var(--muted)}
+
+ol.steps{list-style:none;margin:0;padding:0;display:grid;gap:0;counter-reset:s}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:3.2rem 1fr;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+ol.steps li:last-child{border-bottom:0}
+ol.steps li>div{min-width:0}
+ol.steps li::before{content:counter(s,decimal-leading-zero);font:500 .9rem var(--mono);color:var(--accent);padding-top:3px}
+.day{font:500 .78rem var(--mono);color:var(--muted)}
+
+pre{background:var(--code);border-radius:10px;padding:16px;overflow-x:auto;margin:0;line-height:1.55}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.split>*{min-width:0;display:grid;gap:12px;align-content:start}
+footer{padding-block:40px;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
+
+@media (max-width:820px){.hero-grid,.calc,.split{grid-template-columns:1fr}header.hero{padding-block:36px 28px}}
+@media (prefers-reduced-motion:no-preference){.fast i{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.45}}}
+</style>
+</head>
+<body>
+
+<nav class="top" aria-label="Secciones"><div class="wrap">
+  <b>Respuesta 60</b>
+  <a href="#nicho">Nicho</a><a href="#servicios">Servicios</a><a href="#precios">Precios</a>
+  <a href="#roi">ROI</a><a href="#clientes">Captación</a><a href="#entrega">Entrega</a>
+  <a href="#tecnico">Puesta en marcha</a><a href="#escala">Escalado</a>
+</div></nav>
+
+<header class="hero"><div class="wrap hero-grid">
+  <div>
+    <p class="eyebrow">Agencia de automatización con IA · clínicas y negocios de alto ticket</p>
+    <h1 style="margin-top:14px">Cada lead, respondido en menos de 60 segundos y con cita en la agenda.</h1>
+    <p class="lede">Esta agencia instala en clínicas estéticas y dentales un <strong>sistema de conversión 24/7</strong>: una recepcionista IA que responde, califica y reserva; seguimiento automático; reactivación de pacientes antiguos y gestión de reseñas. Se cobra <strong>puesta en marcha + cuota mensual</strong>, con un margen bruto del 85-90 %. Este repositorio contiene el software, los guiones de venta y los procesos para empezar a trabajar hoy.</p>
+  </div>
+  <div class="clock" aria-label="Comparativa de tiempo de respuesta a un lead">
+    <div class="lane slow">
+      <div class="lbl"><span>Clínica típica · formulario web</span><span>mar 19:40 → jue 11:00</span></div>
+      <div class="bar"><i></i></div>
+      <div class="big">39 h 20 min</div>
+    </div>
+    <div class="lane fast">
+      <div class="lbl"><span>Con la recepcionista IA</span><span>mar 19:40:00 → 19:40:52</span></div>
+      <div class="bar"><i></i></div>
+      <div class="big">52 s</div>
+    </div>
+    <small>Prueba real de «cliente misterioso» incluida en <code>ejemplos/prospecto_ejemplo.txt</code>. En ese tiempo, el paciente de ortodoncia de 3.500 € ya ha escrito a otras dos clínicas.</small>
+  </div>
+</div></header>
+
+<section id="nicho"><div class="wrap">
+  <div class="read" style="display:grid;gap:12px">
+    <p class="eyebrow">Por qué este nicho</p>
+    <h2>Se vende en euros recuperados, no en «inteligencia artificial».</h2>
+    <p class="muted">Un lead de estética cuesta 15-40 € en anuncios y un paciente de implantes u ortodoncia vale 1.200-4.000 €. La mayoría de clínicas responde tarde o nunca. Cerrar esa fuga es fácil de medir, fácil de vender y genera una cuota mensual natural.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Modelo de agencia IA</th><th>Ticket</th><th>Recurrencia</th><th>Ciclo de venta</th><th>ROI demostrable</th><th>Competencia</th></tr></thead>
+    <tbody>
+      <tr><td>Contenido y redes con IA</td><td class="num">300-800 €</td><td>Media</td><td>Corto</td><td>Difícil</td><td>Altísima</td></tr>
+      <tr><td>Chatbots genéricos</td><td class="num">Bajo</td><td>Baja</td><td>Corto</td><td>Difícil</td><td>Alta</td></tr>
+      <tr><td>Software IA a medida</td><td class="num">Alto</td><td>Baja (proyectos)</td><td>Meses</td><td>Variable</td><td>Media</td></tr>
+      <tr class="win"><td><strong>Captación + conversión para alto ticket</strong></td><td class="num">1-4 k€ + 0,5-2 k€/mes</td><td>Alta</td><td>1-2 llamadas</td><td>Citas y € en el panel</td><td>Media</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted read">Nicho de entrada: medicina estética y dental. El mismo sistema se replica, cambiando solo la ficha del negocio, en fisioterapia, cirugía capilar, veterinarias, inmobiliarias, reformas, placas solares, academias y despachos de abogados.</p>
+</div></section>
+
+<section id="servicios"><div class="wrap">
+  <div class="read" style="display:grid;gap:12px">
+    <p class="eyebrow">Qué puede hacer la agencia</p>
+    <h2>Seis módulos, ya programados y listos para cada cliente.</h2>
+  </div>
+  <div class="cols">
+    <article class="mod"><span class="pill">Núcleo</span><h3>Recepcionista IA 24/7</h3>
+      <p>Chat en la web y en WhatsApp. Responde con la ficha del negocio, hace preguntas de calificación, puntúa al lead de 0 a 100, consulta huecos libres y reserva la cita. Escala a una persona ante quejas, urgencias o si se lo piden.</p>
+      <p class="file">app/agents/recepcionista.py · app/static/widget.js</p></article>
+    <article class="mod"><span class="pill">Núcleo</span><h3>Captura de leads</h3>
+      <p>Webhook que recibe formularios web, Meta Lead Ads, Zapier o Make. Guarda el lead y devuelve el primer mensaje de seguimiento para enviarlo al momento.</p>
+      <p class="file">POST /api/leads</p></article>
+    <article class="mod"><span class="pill">Conversión</span><h3>Seguimiento automático</h3>
+      <p>Secuencias por estado: leads sin cita (días 0, 1, 3, 7), presupuestos sin aceptar (días 2, 5, 10) y pacientes que no se presentaron (días 0, 2). Plantillas sin coste de IA.</p>
+      <p class="file">app/agents/seguimiento.py · GET /api/seguimiento/{cliente}</p></article>
+    <article class="mod"><span class="pill warm">Oferta de entrada</span><h3>Reactivación de base de datos</h3>
+      <p>Lee el CSV de pacientes antiguos y escribe un mensaje personal para cada uno según su último tratamiento y gasto, con prioridad y canal. Exporta un CSV listo para enviar.</p>
+      <p class="file">app/agents/reactivacion.py · cli.py reactivar</p></article>
+    <article class="mod"><span class="pill">Reputación</span><h3>Reseñas</h3>
+      <p>Responde reseñas de Google mencionando detalles concretos, marca las que necesitan atención humana y genera el mensaje para pedir reseña tras cada cita.</p>
+      <p class="file">app/agents/resenas.py · POST /api/resenas/responder</p></article>
+    <article class="mod"><span class="pill">Retención</span><h3>Panel de resultados</h3>
+      <p>Leads, citas, conversión lead→cita, leads calientes, conversaciones escaladas y seguimientos del día. Es la prueba mensual de que el cliente debe seguir pagando.</p>
+      <p class="file">/panel?token=…</p></article>
+  </div>
+  <div class="split">
+    <div><h3>Herramientas internas de venta</h3>
+      <p class="muted">Para conseguir clientes, la agencia usa sus propios agentes:</p>
+      <ul class="tight">
+        <li><strong>Auditor de prospectos:</strong> fugas de dinero cuantificadas, gancho personalizado y secuencia de 4 mensajes en frío.</li>
+        <li><strong>Generador de propuestas:</strong> propuesta comercial en Markdown a partir de las notas de la llamada y el ROI.</li>
+        <li><strong>Calculadora de ROI:</strong> la misma fórmula en la CLI, en la API y en esta página.</li>
+        <li><strong>Demo con la marca del prospecto:</strong> una ficha JSON de 15 minutos y el enlace <code>/demo/&lt;prospecto&gt;</code>.</li>
+      </ul></div>
+    <div><h3>Cómo funciona por dentro</h3>
+      <p class="muted">Python + FastAPI + SQLite y la API de Claude. Cada negocio es un archivo <code>clientes/&lt;id&gt;.json</code> con servicios, precios «desde», horarios, políticas, oferta y preguntas frecuentes. La IA solo responde con lo que hay en esa ficha, validada por el cliente.</p>
+      <p class="muted">Si los filtros de seguridad del modelo rechazan una petición legítima, la API la reintenta con un modelo de respaldo automáticamente.</p></div>
+  </div>
+</div></section>
+
+<section id="precios"><div class="wrap">
+  <div class="read" style="display:grid;gap:12px">
+    <p class="eyebrow">Oferta y precios</p>
+    <h2>Sistema de Conversión 24/7</h2>
+    <p class="muted">Garantía: si en 60 días no genera citas atribuibles por al menos el doble de la cuota mensual, se trabaja sin cobrar cuota hasta lograrlo. Permanencia mínima de 3 meses.</p>
+  </div>
+  <div class="plans">
+    <div class="plan"><h3>Arranque</h3><div class="price">497 €<span> /mes</span></div><span class="muted">+ 997 € de puesta en marcha</span>
+      <ul class="tight"><li>Recepcionista IA en web y WhatsApp</li><li>Agenda y CRM de leads</li><li>Informe mensual</li></ul></div>
+    <div class="plan rec"><span class="pill">Recomendado</span><h3>Crecimiento</h3><div class="price">997 €<span> /mes</span></div><span class="muted">+ 1.997 € de puesta en marcha</span>
+      <ul class="tight"><li>Todo lo de Arranque</li><li>Seguimiento automático y no-shows</li><li>Gestión de reseñas</li><li>1 reactivación por trimestre</li></ul></div>
+    <div class="plan"><h3>Dominio</h3><div class="price">1.997 €<span> /mes</span></div><span class="muted">+ 3.997 € de puesta en marcha</span>
+      <ul class="tight"><li>Todo lo de Crecimiento</li><li>Voz IA para llamadas</li><li>Varias sedes y anuncios gestionados</li><li>Reunión semanal</li></ul></div>
+  </div>
+  <div class="callout">
+    <h3>Para conseguir los primeros clientes: reactivación a éxito</h3>
+    <p>0 € por adelantado. Se cobra 50-100 € por cita asistida (o el 10-15 % del primer tratamiento). Una base de 1.000 pacientes suele dar 10-30 citas. Con los resultados en la mano, se ofrece el plan Crecimiento.</p>
+  </div>
+  <p class="muted read">Economía por cliente en Crecimiento: 13.961 € el primer año frente a unos 60-150 €/mes de IA, mensajería y servidor, y 2-3 horas de mantenimiento al mes.</p>
+</div></section>
+
+<section id="roi"><div class="wrap">
+  <div class="read" style="display:grid;gap:12px">
+    <p class="eyebrow">Calculadora usada en la llamada de ventas</p>
+    <h2>¿Cuánto pierde hoy tu prospecto?</h2>
+    <p class="muted">Supuestos conservadores: responder en menos de un minuto sube la tasa de cita del 25 % al 40 %; se cierra la mitad de las citas. Misma fórmula que <code>app/roi.py</code>.</p>
+  </div>
+  <div class="calc">
+    <form id="roi-form" novalidate>
+      <label for="leads">Leads al mes<input id="leads" type="number" min="1" value="80" inputmode="numeric"></label>
+      <label for="ticket">Ticket medio (€)<input id="ticket" type="number" min="1" value="1500" inputmode="numeric"></label>
+      <label for="plan">Plan<select id="plan"><option value="arranque">Arranque</option><option value="crecimiento" selected>Crecimiento</option><option value="dominio">Dominio</option></select></label>
+      <p class="muted" style="font-size:.85rem">Ejemplo: clínica dental con 80 leads/mes y ticket medio de 1.500 €.</p>
+    </form>
+    <div class="out" aria-live="polite">
+      <div><b id="o-ventas">–</b><span>pacientes extra al mes</span></div>
+      <div class="hl"><b id="o-mes">–</b><span>ingreso extra al mes</span></div>
+      <div><b id="o-anual">–</b><span>ingreso extra al año</span></div>
+      <div><b id="o-coste">–</b><span>coste anual del plan</span></div>
+      <div class="hl"><b id="o-roi">–</b><span>retorno sobre la inversión anual</span></div>
+      <div><b id="o-meses">–</b><span>meses para recuperar la puesta en marcha</span></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="clientes"><div class="wrap">
+  <div class="read" style="display:grid;gap:12px">
+    <p class="eyebrow">Captación de clientes · docs/03 y docs/04</p>
+    <h2>De la lista de prospectos a la firma.</h2>
+  </div>
+  <div class="split">
+    <ol class="steps">
+      <li><div><h3>Lista de 300 negocios al mes</h3><p class="muted">Google Maps, Meta Ads Library (ya pagan anuncios) e Instagram. Ideal: 4,0-4,6★, anuncios activos y sin reserva online.</p></div></li>
+      <li><div><h3>Prueba de cliente misterioso</h3><p class="muted">Formulario un martes a las 19:30 y llamada el sábado. El tiempo de respuesta es el gancho.</p></div></li>
+      <li><div><h3>Auditoría automática</h3><p class="muted"><code>python cli.py auditar prospecto.txt</code> devuelve fugas cuantificadas y la secuencia de mensajes.</p></div></li>
+      <li><div><h3>Secuencia de 4 toques</h3><p class="muted">Email día 1, email día 3, DM día 5 con la demo de su propia clínica, email de cierre día 9.</p></div></li>
+      <li><div><h3>Llamada de diagnóstico de 30 min</h3><p class="muted">Situación, cuantificar con la calculadora, demo en vivo, cierre. Guion y respuestas a objeciones incluidos.</p></div></li>
+      <li><div><h3>Propuesta en 24 h</h3><p class="muted"><code>python cli.py propuesta notas.txt</code> y contrato de <code>docs/06</code>.</p></div></li>
+    </ol>
+    <div>
+      <h3>Embudo semanal objetivo</h3>
+      <div class="tbl"><table style="min-width:0">
+        <tbody>
+          <tr><td>Prospectos auditados</td><td class="num">75</td></tr>
+          <tr><td>Mensajes enviados</td><td class="num">200-300</td></tr>
+          <tr><td>Respuestas positivas (3-5 %)</td><td class="num">6-12</td></tr>
+          <tr><td>Llamadas de diagnóstico</td><td class="num">4-6</td></tr>
+          <tr><td>Clientes cerrados</td><td class="num">1-2</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Primer email (plantilla)</h3>
+      <pre>asunto: vuestro formulario
+
+Hola {nombre}, el martes a las 19:40 pedí información
+en la web de {clínica}. La respuesta llegó el jueves
+a las 11:00. Para un paciente de ortodoncia de 3.500 €
+son 40 horas en las que ya ha escrito a otras dos clínicas.
+
+He grabado un vídeo de 2 minutos con cómo lo resolvería.
+¿Te lo envío?</pre>
+    </div>
+  </div>
+</div></section>
+
+<section id="entrega"><div class="wrap">
+  <div class="read" style="display:grid;gap:12px">
+    <p class="eyebrow">Entrega · docs/05</p>
+    <h2>Cliente nuevo funcionando en 14 días.</h2>
+  </div>
+  <ol class="steps">
+    <li><div><span class="day">Día 0</span><h3>Firma</h3><p class="muted">Contrato, encargo de tratamiento RGPD, cobro de la puesta en marcha, grupo de comunicación.</p></div></li>
+    <li><div><span class="day">Días 1-3</span><h3>Kickoff y ficha del negocio</h3><p class="muted">Reunión de 45 min; se crea <code>clientes/&lt;id&gt;.json</code> y el cliente la valida por escrito.</p></div></li>
+    <li><div><span class="day">Días 4-7</span><h3>Instalación</h3><p class="muted">Widget en su web con una línea, formularios y Lead Ads al webhook, WhatsApp Business API reenviando a <code>/api/chat</code>.</p></div></li>
+    <li><div><span class="day">Días 8-10</span><h3>Pruebas</h3><p class="muted">30 conversaciones de prueba: precios, cita, cambio, queja, urgencia, pregunta fuera de ficha y petición de humano.</p></div></li>
+    <li><div><span class="day">Días 11-14</span><h3>Lanzamiento</h3><p class="muted">Producción, primera reactivación y acceso al panel. Después, 2-3 horas al mes de revisión e informe.</p></div></li>
+  </ol>
+</div></section>
+
+<section id="tecnico"><div class="wrap">
+  <div class="read" style="display:grid;gap:12px">
+    <p class="eyebrow">Puesta en marcha técnica</p>
+    <h2>Arrancar en cinco minutos.</h2>
+  </div>
+  <div class="split">
+    <div>
+      <h3>Instalación</h3>
+<pre>pip install -r requirements.txt
+cp .env.example .env    # pon tu ANTHROPIC_API_KEY
+export $(cat .env | xargs)
+uvicorn app.main:app --reload
+
+# Abre:
+#  http://localhost:8000/demo/clinica-lumiere
+#  http://localhost:8000/panel?token=cambia-esto</pre>
+      <h3>Línea de comandos</h3>
+<pre>python cli.py chat clinica-lumiere
+python cli.py reactivar clinica-lumiere ejemplos/contactos_ejemplo.csv
+python cli.py auditar ejemplos/prospecto_ejemplo.txt --ticket 1500 --leads 80
+python cli.py propuesta notas.txt --negocio "Clínica X" --leads 80 --ticket 1500
+python cli.py roi --leads 60 --ticket 300
+python cli.py seguimiento clinica-lumiere
+python cli.py resena clinica-lumiere --autor Ana --estrellas 2 --texto "..."</pre>
+      <h3>Widget en la web del cliente</h3>
+<pre>&lt;script src="https://TU-DOMINIO/static/widget.js"
+        data-cliente="clinica-lumiere"
+        data-color="#0b7a68"&gt;&lt;/script&gt;</pre>
+    </div>
+    <div>
+      <h3>API</h3>
+      <div class="tbl"><table style="min-width:440px">
+        <thead><tr><th>Ruta</th><th>Uso</th></tr></thead>
+        <tbody>
+          <tr><td><code>POST /api/chat</code></td><td>Mensaje a la recepcionista IA (web, WhatsApp…)</td></tr>
+          <tr><td><code>POST /api/leads</code></td><td>Webhook de formularios y Lead Ads</td></tr>
+          <tr><td><code>POST /api/roi</code></td><td>Calculadora de ROI</td></tr>
+          <tr><td><code>GET /api/metricas/{id}</code></td><td>KPIs del cliente (token)</td></tr>
+          <tr><td><code>GET /api/leads/{id}</code></td><td>Leads (token)</td></tr>
+          <tr><td><code>GET /api/citas/{id}</code></td><td>Citas (token)</td></tr>
+          <tr><td><code>GET /api/seguimiento/{id}</code></td><td>Mensajes que tocan hoy (token)</td></tr>
+          <tr><td><code>POST /api/resenas/responder</code></td><td>Respuesta a reseña (token)</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Estructura</h3>
+<pre>app/
+  main.py            servidor, API y páginas
+  llm.py             cliente de Claude con respaldo
+  db.py              SQLite: leads, citas, chats
+  roi.py             planes y calculadora
+  agents/            recepcionista, reactivacion,
+                     seguimiento, resenas,
+                     prospector, propuesta
+  static/            widget.js, demo, panel
+clientes/            una ficha JSON por negocio
+docs/                estrategia, oferta, ventas,
+                     entrega, contrato, escalado
+ejemplos/            CSV y prospecto de muestra
+tests/               pruebas sin llamar a la API
+cli.py · Dockerfile · index.html</pre>
+    </div>
+  </div>
+</div></section>
+
+<section id="escala"><div class="wrap">
+  <div class="read" style="display:grid;gap:12px">
+    <p class="eyebrow">Escalado · docs/07</p>
+    <h2>De 0 a 40 clientes.</h2>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Etapa</th><th>Clientes</th><th>Ingreso mensual recurrente</th><th>Qué haces tú</th></tr></thead>
+    <tbody>
+      <tr><td>Meses 1-2</td><td class="num">2-3</td><td class="num">1.500-3.000 €</td><td>Vendes y entregas. Reactivaciones a éxito para conseguir casos y testimonios en vídeo.</td></tr>
+      <tr><td>Meses 3-4</td><td class="num">6-8</td><td class="num">6.000-8.000 €</td><td>Contratas a una persona de onboarding que sigue el SOP de 14 días.</td></tr>
+      <tr><td>Mes 6</td><td class="num">10-15</td><td class="num">10.000-15.000 €</td><td>Solo vendes. Setter para prospección.</td></tr>
+      <tr><td>Mes 12</td><td class="num">25-40</td><td class="num">25.000-40.000 €</td><td>Closer a comisión, gestor de cuentas cada 20 clientes, marca blanca para otras agencias.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="split">
+    <div><h3>KPIs por cliente</h3>
+      <ul class="tight"><li>Primera respuesta en menos de 60 s</li><li>Conversión lead→cita por encima del 35 %</li><li>Escalados a humano por debajo del 10 %</li><li>Ingresos atribuidos de más de 3 veces la cuota</li></ul></div>
+    <div><h3>Cumplimiento</h3>
+      <ul class="tight"><li>RGPD: contrato de encargado del tratamiento y baja en cada mensaje</li><li>Reglamento Europeo de IA: avisar de que se habla con una IA</li><li>LSSI: mensajes comerciales solo con consentimiento</li><li>Sanidad: la IA no diagnostica ni promete resultados</li></ul></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">Respuesta 60 · agencia de automatización con IA. Todo el código y los documentos están en este repositorio. Las cifras de conversión son supuestos de partida para ajustar con los datos reales de cada cliente.</div></footer>
+
+<script>
+(function(){
+  var PLANES={arranque:{setup:997,mensual:497},crecimiento:{setup:1997,mensual:997},dominio:{setup:3997,mensual:1997}};
+  var eur=new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR",maximumFractionDigits:0});
+  function $(id){return document.getElementById(id)}
+  function calc(){
+    var leads=Math.max(0,+$("leads").value||0), ticket=Math.max(0,+$("ticket").value||0), p=PLANES[$("plan").value];
+    var extra=leads*(0.40-0.25)*0.5, mes=extra*ticket, coste=p.setup+12*p.mensual;
+    $("o-ventas").textContent=extra.toLocaleString("es-ES",{maximumFractionDigits:1});
+    $("o-mes").textContent=eur.format(mes);
+    $("o-anual").textContent=eur.format(mes*12);
+    $("o-coste").textContent=eur.format(coste);
+    $("o-roi").textContent=coste?(mes*12/coste).toLocaleString("es-ES",{maximumFractionDigits:1})+"×":"–";
+    $("o-meses").textContent=mes>p.mensual?(p.setup/(mes-p.mensual)).toLocaleString("es-ES",{maximumFractionDigits:1}):"no se recupera";
+  }
+  ["leads","ticket","plan"].forEach(function(id){$(id).addEventListener("input",calc)});
+  $("roi-form").addEventListener("submit",function(e){e.preventDefault()});
+  calc();
+})();
+</script>
+</body>
+</html>

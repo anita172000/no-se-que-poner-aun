@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel de resultados</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--tx:#1c1917;--mut:#78716c;--ac:#0f766e;--bd:#e7e5e4}
+@media (prefers-color-scheme:dark){:root{--bg:#141413;--card:#1f1e1c;--tx:#f5f5f4;--mut:#a8a29e;--ac:#2dd4bf;--bd:#3a3936}}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:24px 16px}h1{margin:0 0 16px;font-size:1.5rem}
+select{font:inherit;padding:6px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
+.k{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px}.k b{display:block;font-size:1.7rem;font-variant-numeric:tabular-nums}.k span{color:var(--mut);font-size:.85rem}
+section{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:16px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--bd)}th{color:var(--mut);font-weight:500}
+</style></head><body><main>
+<h1>Panel de resultados</h1>
+<label>Cliente: <select id="cli"></select></label>
+<div class="kpis" id="kpis"></div>
+<section><h2>Leads recientes</h2><table id="leads"></table></section>
+<section><h2>Citas</h2><table id="citas"></table></section>
+<section><h2>Seguimientos para enviar hoy</h2><table id="seg"></table></section>
+</main><script>
+const token = new URLSearchParams(location.search).get("token");
+const get = p => fetch(p + (p.includes("?") ? "&" : "?") + "token=" + encodeURIComponent(token)).then(r => r.json());
+function tabla(el, filas, cols) {
+  el.innerHTML = "";
+  const h = el.insertRow(); cols.forEach(c => { const th = document.createElement("th"); th.textContent = c; h.appendChild(th); });
+  if (!filas.length) { el.insertRow().insertCell().textContent = "Sin datos todavía"; return; }
+  filas.forEach(f => { const r = el.insertRow(); cols.forEach(c => r.insertCell().textContent = f[c] ?? ""); });
+}
+async function cargar(id) {
+  const m = await get("/api/metricas/" + id);
+  const k = [["Leads", m.leads], ["Citas", m.citas], ["Conversión lead→cita", (m.conversion_lead_cita * 100).toFixed(0) + "%"],
+             ["Leads calientes", m.leads_calientes], ["Conversaciones", m.conversaciones], ["Escaladas a humano", m.escaladas]];
+  document.getElementById("kpis").innerHTML = "";
+  k.forEach(([n, v]) => { const d = document.createElement("div"); d.className = "k"; d.innerHTML = "<b></b><span></span>";
+    d.querySelector("b").textContent = v; d.querySelector("span").textContent = n; document.getElementById("kpis").appendChild(d); });
+  tabla(document.getElementById("leads"), await get("/api/leads/" + id), ["id", "nombre", "telefono", "interes", "urgencia", "puntuacion", "estado", "origen", "creado"]);
+  tabla(document.getElementById("citas"), await get("/api/citas/" + id), ["id", "servicio", "inicio", "estado", "lead_id"]);
+  tabla(document.getElementById("seg"), await get("/api/seguimiento/" + id), ["lead_id", "telefono", "dia", "mensaje"]);
+}
+get("/api/clientes").then(lista => {
+  const sel = document.getElementById("cli");
+  lista.forEach(c => sel.add(new Option(c, c)));
+  sel.onchange = () => cargar(sel.value);
+  if (lista.length) cargar(lista[0]);
+});
+</script></body></html>

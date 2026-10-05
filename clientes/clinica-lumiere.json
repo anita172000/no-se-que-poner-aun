@@ -1,0 +1,29 @@
+{
+  "nombre": "Clínica Lumière",
+  "sector": "medicina estética",
+  "ubicacion": "Calle Serrano 45, Madrid",
+  "telefono": "+34 910 000 000",
+  "asistente": "Lucía",
+  "tono": "cercano, profesional y tranquilizador; tutea salvo que la persona use usted",
+  "intervalo_citas_min": 30,
+  "horario": {
+    "lun": ["10:00", "20:00"], "mar": ["10:00", "20:00"], "mie": ["10:00", "20:00"],
+    "jue": ["10:00", "20:00"], "vie": ["10:00", "18:00"], "sab": ["10:00", "14:00"], "dom": []
+  },
+  "servicios": [
+    {"nombre": "Primera valoración", "precio_desde": 0, "duracion_min": 30, "descripcion": "Gratuita con la doctora, sin compromiso."},
+    {"nombre": "Ácido hialurónico (labios)", "precio_desde": 290, "duracion_min": 45, "descripcion": "Resultado natural, duración 9-12 meses."},
+    {"nombre": "Toxina botulínica (3 zonas)", "precio_desde": 350, "duracion_min": 30, "descripcion": "Frente, entrecejo y patas de gallo."},
+    {"nombre": "Láser de depilación (pack 6 sesiones)", "precio_desde": 450, "duracion_min": 45, "descripcion": "Diodo de última generación."},
+    {"nombre": "Mesoterapia facial", "precio_desde": 180, "duracion_min": 45, "descripcion": "Vitaminas y ácido hialurónico para luminosidad."}
+  ],
+  "politicas": "Cancelación gratuita hasta 24 h antes. Financiación sin intereses hasta 12 meses a partir de 300 €. Menores no.",
+  "oferta_actual": "Valoración gratuita + 15% de descuento en el primer tratamiento este mes",
+  "oferta_reactivacion": "Por ser paciente de la casa: revisión gratuita y 20% en tu tratamiento de mantenimiento hasta fin de mes",
+  "enlace_resenas": "https://g.page/r/EJEMPLO/review",
+  "faq": [
+    {"p": "¿Duele el ácido hialurónico?", "r": "Se aplica anestesia tópica y el producto lleva lidocaína; la mayoría lo describe como molestia leve."},
+    {"p": "¿Hay parking?", "r": "Sí, parking público a 50 metros en la calle Goya."},
+    {"p": "¿Quién realiza los tratamientos?", "r": "Siempre médicos colegiados especializados en medicina estética."}
+  ]
+}
