@@ -68,7 +68,7 @@ header.site nav a:hover{color:var(--night-ink)}
 /* Móvil con conversación */
 .demo-box{display:grid;gap:14px;justify-items:center}
 .tabs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;background:rgba(255,255,255,.06);padding:5px;border-radius:999px}
-.tabs button{font:600 .88rem var(--body);color:var(--night-muted);background:transparent;border:0;padding:8px 14px;border-radius:999px;cursor:pointer}
+.tabs button{font:600 .88rem var(--body);color:var(--night-muted);background:transparent;border:0;padding:8px 14px;min-height:44px;border-radius:999px;cursor:pointer}
 .tabs button[aria-selected="true"]{background:var(--night-ink);color:var(--night)}
 .phone{width:min(100%,360px);background:#0a1320;border-radius:38px;padding:12px;box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.08) inset}
 .screen{background:#ece5dd;border-radius:28px;overflow:hidden;display:grid;grid-template-rows:auto 1fr;height:520px}
@@ -80,7 +80,7 @@ header.site nav a:hover{color:var(--night-ink)}
 .chat-head small{opacity:.85;font-size:.78rem}
 .chat{padding:14px 12px;display:flex;flex-direction:column;gap:8px;overflow:hidden;justify-content:flex-end;-webkit-mask-image:linear-gradient(transparent,#000 56px);mask-image:linear-gradient(transparent,#000 56px)}
 .b{max-width:82%;padding:8px 11px 6px;border-radius:12px;font-size:.9rem;line-height:1.4;color:#14202b;box-shadow:0 1px 1px rgba(0,0,0,.08);position:relative;animation:pop .28s ease-out both}
-.b time{display:block;text-align:right;font-size:.68rem;color:#6b7a86;margin-top:2px;font-variant-numeric:tabular-nums}
+.b time{display:block;text-align:right;font-size:.7rem;color:#46535d;margin-top:2px;font-variant-numeric:tabular-nums}
 .b.in{align-self:flex-start;background:var(--bubble-in)}
 .b.out{align-self:flex-end;background:var(--bubble-out)}
 :root[data-theme="dark"] .b{color:var(--ink)}
@@ -109,9 +109,9 @@ section.alt{background:var(--surface-2)}
 
 /* Día en la clínica */
 .dia{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px;box-shadow:var(--shadow);display:grid;gap:22px}
-.track{position:relative;height:56px;border-radius:12px;overflow:hidden;background:repeating-linear-gradient(90deg,var(--surface-2) 0 calc(100%/24 - 1px),var(--line) calc(100%/24 - 1px) calc(100%/24))}
+.track{position:relative;height:64px;border-radius:12px;overflow:hidden;background:repeating-linear-gradient(90deg,var(--surface-2) 0 calc(100%/24 - 1px),var(--line) calc(100%/24 - 1px) calc(100%/24))}
 .track .open{position:absolute;top:0;bottom:0;background:var(--accent-soft)}
-.track .ev{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 4px color-mix(in srgb,var(--warn) 25%,transparent)}
+.track .ev{position:absolute;top:62%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 4px color-mix(in srgb,var(--warn) 25%,transparent)}
 .track .ev.ok{background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 25%,transparent)}
 .hours{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:6px}
 .leyenda{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:.88rem;color:var(--muted)}
@@ -140,7 +140,7 @@ section.alt{background:var(--surface-2)}
 .slider{display:grid;gap:8px}
 .slider label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem;gap:12px}
 .slider output{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:800}
-input[type=range]{width:100%;accent-color:var(--accent);height:28px}
+input[type=range]{width:100%;accent-color:var(--accent);height:44px;margin:0}
 .res .perdida{font-family:var(--display);font-size:clamp(2.6rem,6vw,3.8rem);line-height:1;color:var(--mint);font-variant-numeric:tabular-nums}
 .res small{color:var(--night-muted);font-size:.85rem}
 .res .mini{display:grid;grid-template-columns:1fr 1fr;gap:12px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px}
@@ -167,7 +167,7 @@ ol.pasos .cuando{font-size:.8rem;font-weight:700;text-transform:uppercase;letter
 .badge{justify-self:start;background:var(--accent-soft);color:var(--accent);font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:5px 11px;border-radius:99px}
 
 /* Confianza */
-.sellos{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px}
+.sellos{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
 .sello{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
 .sello .ico{flex:none}
 .sello b{display:block;margin-bottom:2px}
@@ -189,12 +189,12 @@ ol.pasos .cuando{font-size:.8rem;font-weight:700;text-transform:uppercase;letter
 
 /* FAQ */
 .faq{display:grid;gap:10px;max-width:820px;width:100%;justify-self:center}
-details{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 22px}
-summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:16px}
+details{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 22px}
+summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:44px;padding-block:6px}
 summary::-webkit-details-marker{display:none}
 summary::after{content:"+";font-size:1.4rem;line-height:1;color:var(--accent);transition:transform .2s}
 details[open] summary::after{transform:rotate(45deg)}
-details p{margin-top:10px;color:var(--muted)}
+details p{margin:4px 0 12px;color:var(--muted)}
 
 /* Formulario por pasos */
 .cta-band{background:radial-gradient(900px 500px at 100% 0%, rgba(127,216,179,.15), transparent 60%),var(--night);color:var(--night-ink)}
@@ -250,3 +250,11 @@ footer .logo{color:var(--night-ink);margin:0}
 .legal h1{font-size:2.3rem}
 .legal h2{font-size:1.4rem;margin-top:16px}
 .legal footer{padding-block:36px}
+
+/* Revisión de diseño */
+header.site .btn{min-height:44px}
+.track .ev::after{content:attr(data-h);position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-size:.7rem;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+@media (max-width:600px){.track .ev::after{font-size:.6rem}.track .ev:nth-child(5)::after{display:none}}
+.legal-links a,footer a{display:inline-block;padding-block:12px}
+.consent a{padding-block:4px}
+.resena-vacia a{display:inline-block;padding-block:12px}

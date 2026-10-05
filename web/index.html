@@ -134,11 +134,11 @@
     <div>
       <div class="track" role="img" aria-label="Línea de 24 horas: el negocio abre de 10:00 a 20:00 y llegan mensajes a las 07:50, 12:15, 15:30, 21:40 y 23:14">
         <span class="open" style="left:41.67%;width:41.67%"></span>
-        <span class="ev" style="left:32.6%" title="07:50"></span>
-        <span class="ev ok" style="left:51%" title="12:15"></span>
-        <span class="ev ok" style="left:64.6%" title="15:30"></span>
-        <span class="ev" style="left:90.3%" title="21:40"></span>
-        <span class="ev" style="left:96.8%" title="23:14"></span>
+        <span class="ev" style="left:32.6%" title="07:50" data-h="07:50"></span>
+        <span class="ev ok" style="left:51%" title="12:15" data-h="12:15"></span>
+        <span class="ev ok" style="left:64.6%" title="15:30" data-h="15:30"></span>
+        <span class="ev" style="left:90.3%" title="21:40" data-h="21:40"></span>
+        <span class="ev" style="left:96.8%" title="23:14" data-h="23:14"></span>
       </div>
       <div class="hours"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
     </div>
@@ -465,6 +465,7 @@ var RESENAS = [];
       a.append(e, t, p); cont.appendChild(a);
     });
   } else { cont.hidden = true; }
+  document.querySelectorAll('a[href*="TU-ENLACE"]').forEach(function (a) { a.parentNode.hidden = true; });
   $("anio").textContent = new Date().getFullYear();
 
   /* ---------- Formulario por pasos ---------- */
@@ -486,6 +487,9 @@ var RESENAS = [];
   }
   $("siguiente").addEventListener("click", function () { if (valido()) { n++; mostrar(); pasos[n - 1].querySelector("input,select").focus(); } });
   $("atras").addEventListener("click", function () { n--; mostrar(); });
+  f.querySelectorAll('input[name="tipo"]').forEach(function (r) {
+    r.addEventListener("change", function () { if (n === 1) setTimeout(function () { n = 2; mostrar(); }, 250); });
+  });
   mostrar();
 
   /* Envío a Netlify Forms sin recargar; si falla, se ofrece el email. */
