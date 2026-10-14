@@ -25,7 +25,7 @@ DEFAULT_SETTINGS = {
     "sports": ["*"],    # "*" = todos los deportes
     "markets": ["*"],   # "*" = todos los mercados; o nombres concretos (ML, Totals...)
     "hours_ahead": 48,
-    "max_events": 100,
+    "max_events": 60,
     "budget": 50.0,
     "min_margin": 0.0,
     "max_budget_op": 100.0,
@@ -133,7 +133,9 @@ class Service:
                     max_age_s=st["max_odds_age_s"], exact_bookmakers=(st["auto_bookmaker"],),
                     markets=markets)
         self.store.replace_opportunities(opps)
-        self.last_scan = {"at": now_iso(), "events": len(events), "error": ""}
+        # Avisos parciales (una casa no respondió) sin parar la búsqueda.
+        self.last_scan = {"at": now_iso(), "events": len(events),
+                          "error": "; ".join(getattr(self.feed, "warnings", []) or [])}
         return self.opportunities()
 
     def opportunities(self):

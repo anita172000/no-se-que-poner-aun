@@ -10,6 +10,9 @@ from fastapi.staticfiles import StaticFiles
 from betfair import BetfairClient
 from exchange import BetfairExchange, SimulatedExchange
 from feeds import DemoFeed, OddsApiIoFeed
+from scrapers.betfair_odds import BetfairOddsSource
+from scrapers.feed import WebsFeed
+from scrapers.kambi import KambiSource
 from service import Service, ServiceError
 from store import Store
 
@@ -17,20 +20,37 @@ STATIC = Path(__file__).parent / "static"
 
 
 def build_service(env=None):
+    """Elige de dónde salen las cuotas (SUREBET_FEED) y si Betfair apuesta de verdad.
+
+    SUREBET_FEED: "webs" (gratis: lee las casas directamente), "odds-api" (de pago,
+    necesita ODDS_API_KEY) o "demo" (datos de ejemplo). Por defecto: "odds-api" si
+    hay clave y, si no, "webs".
+    """
     env = env if env is not None else os.environ
     store = Store(env.get("SUREBET_DB") or Path(__file__).parent / "datos" / "surebet.db")
-    feed = OddsApiIoFeed(env["ODDS_API_KEY"]) if env.get("ODDS_API_KEY") else DemoFeed()
     creds = [env.get(k) for k in ("BETFAIR_APP_KEY", "BETFAIR_USERNAME", "BETFAIR_PASSWORD")]
-    if env.get("SUREBET_LIVE") == "1" and all(creds):
+    client = None
+    if all(creds):
         client = BetfairClient(*creds,
                                login_url=env.get("BETFAIR_LOGIN_URL"),
                                keepalive_url=env.get("BETFAIR_KEEPALIVE_URL"),
                                betting_url=env.get("BETFAIR_BETTING_URL"),
                                account_url=env.get("BETFAIR_ACCOUNT_URL"))
+    mode = env.get("SUREBET_FEED") or ("odds-api" if env.get("ODDS_API_KEY") else "webs")
+    if mode == "odds-api" and env.get("ODDS_API_KEY"):
+        feed = OddsApiIoFeed(env["ODDS_API_KEY"])
+    elif mode == "demo":
+        feed = DemoFeed()
+    else:
+        sources = [("PAF ES / LeoVegas ES", KambiSource())]
+        if client:  # leer cuotas de Betfair es gratis con tu cuenta (no apuesta nada)
+            sources.append(("Betfair", BetfairOddsSource(client)))
+        feed = WebsFeed(sources)
+    if env.get("SUREBET_LIVE") == "1" and client:
         exchange = BetfairExchange(client, float(env.get("BETFAIR_MIN_STAKE", "2")))
     else:
         exchange = SimulatedExchange(store)
-        exchange.reason = ("Faltan claves de Betfair en .env" if not all(creds)
+        exchange.reason = ("Faltan claves de Betfair en .env" if not client
                            else "SUREBET_LIVE no está a 1")
     return Service(store, feed, exchange)
 

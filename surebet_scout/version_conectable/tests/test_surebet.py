@@ -40,7 +40,7 @@ def test_detects_three_way_surebet_and_balances_payouts():
 
 def test_no_surebet_and_commission_can_kill_it():
     assert find_opportunity(event({"A": {"home": 1.9, "away": 1.9}}), 100) is None
-    ev = event({"A": {"home": 2.04, "away": 1.5}, BF: {"home": 1.5, "away": 2.04}})
+    ev = {**event({"A": {"home": 2.04, "away": 1.5}, BF: {"home": 1.5, "away": 2.04}}), "sport": "tennis"}
     assert find_opportunity(ev, 100) is not None
     assert find_opportunity(ev, 100, commissions={"A": 0.05, BF: 0.05}) is None
 
@@ -48,6 +48,12 @@ def test_no_surebet_and_commission_can_kill_it():
 def test_ignores_bookmakers_with_incomplete_market():
     ev = event({"A": {"home": 5.0, "away": 5.0},  # sin empate: no se mezcla con 1X2
                 "B": {"home": 2.0, "draw": 3.0, "away": 3.0}})
+    assert find_opportunity(ev, 100) is None
+
+
+def test_football_winner_without_draw_is_never_a_surebet():
+    # 2 resultados en el ganador de fútbol no cubren el empate: nunca es surebet
+    ev = event({"A": {"home": 2.5, "away": 1.5}, "B": {"home": 1.5, "away": 2.5}})
     assert find_opportunity(ev, 100) is None
 
 

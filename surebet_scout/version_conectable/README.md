@@ -37,14 +37,18 @@ ahí podría perder.
 
 ## Conexiones
 
-- **Cuotas:** [odds-api.io](https://odds-api.io), una API oficial de datos que cubre casas .es
-  (Bwin ES, Codere ES, Luckia ES, Retabet ES, Winamax ES, 888Sport ES, PokerStars ES,
-  Betway ES, Betfair…). Es de pago y el precio depende del número de casas. Solo lee cuotas.
+- **Cuotas gratis (por defecto, `SUREBET_FEED=webs`):**
+  - **PAF ES y LeoVegas ES** (plataforma Kambi), con todos sus mercados. Usa los mismos datos
+    públicos que cargan sus webs, con pausas entre peticiones.
+  - **Betfair Exchange**: si pones tus claves, lee también sus cuotas por la API oficial (gratis).
+  - **Resto de casas**: solo muestran cuotas desde España. Ejecuta `herramientas/capturar_casas.py`
+    en tu ordenador y pasa el `.zip` que crea para poder escribir sus lectores.
+  - El mismo partido se une entre casas aunque escriban los nombres distinto (mismo deporte,
+    inicio a menos de 20 min y los dos equipos parecidos). Si hay duda, no se une.
+- **Alternativas:** `SUREBET_FEED=demo` (datos de ejemplo) u `odds-api` (servicio de pago).
 - **Apuestas automáticas:** Betfair Exchange (API-NG): inicio de sesión oficial por API,
-  búsqueda del mercado *Match Odds*, cuota en vivo y orden **FILL_OR_KILL** (se casa entera
-  o se cancela al instante).
-- **Resto de casas:** no tienen API de apuestas para particulares; esas apuestas son manuales.
-  No se automatiza su web ni se usan sus contraseñas.
+  mercado *Match Odds*, cuota en vivo y orden **FILL_OR_KILL**.
+- **Resto de casas:** no tienen API de apuestas; esas apuestas son manuales.
 
 ## Surebets de BetOven u otros escáneres
 

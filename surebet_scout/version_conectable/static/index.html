@@ -119,14 +119,15 @@
   <section id="tab-guia" class="tab">
     <div class="guide">
       <div class="card">
-        <h2>1 · Clave de cuotas (odds-api.io)</h2>
-        <p>Es el servicio que lee las cuotas de las casas españolas: Bwin ES, Codere ES, Luckia ES, Retabet ES, Winamax ES, 888Sport ES, PokerStars ES, Betway ES, Betfair y más. Sin clave, la web funciona con <b>datos de ejemplo</b>.</p>
-        <ol>
-          <li>Entra en <b>odds-api.io</b> y crea una cuenta.</li>
-          <li>Elige plan: se paga según el número de casas (p. ej. 2, 5, 10 o 15). Con más casas encontrarás más surebets.</li>
-          <li>En su panel, selecciona las mismas casas que marques en <b>Ajustes</b>.</li>
-          <li>Copia tu clave en el archivo <code>.env</code>: <code>ODDS_API_KEY=tu_clave</code></li>
-        </ol>
+        <h2>1 · De dónde salen las cuotas (gratis)</h2>
+        <p>Por defecto la web <b>lee las cuotas directamente de las casas</b>, sin pagar nada:</p>
+        <ul>
+          <li><b>PAF ES y LeoVegas ES</b> (plataforma Kambi): ya funcionan.</li>
+          <li><b>Betfair Exchange</b>: con tus claves de Betfair (punto 2) también lee sus cuotas, gratis.</li>
+          <li><b>El resto de casas</b> (Codere, Bwin, Luckia, Sportium, Retabet, Winamax…) solo dejan ver sus cuotas desde España. Ejecuta una vez la herramienta de captura y pásame el .zip que crea para hacer sus lectores:
+            <br><code>pip install playwright</code><br><code>python -m playwright install chromium</code><br><code>python herramientas/capturar_casas.py</code></li>
+        </ul>
+        <p class="muted">PAF ES y LeoVegas ES comparten proveedor y dan las mismas cuotas: las surebets aparecen al compararlas con otras plataformas (Betfair y las que se vayan añadiendo).</p>
       </div>
       <div class="card">
         <h2>2 · Betfair (la apuesta automática)</h2>

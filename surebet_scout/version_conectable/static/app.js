@@ -72,7 +72,7 @@ function renderStatus() {
     st.live ? `<span class="pill live" title="Las apuestas de Betfair son reales"><span class="dot"></span>MODO REAL</span>`
       : `<span class="pill warn" title="${esc(st.sim_reason)}"><span class="dot"></span>SIMULACIÓN</span>`,
     feedDemo ? `<span class="pill"><span class="dot"></span>Datos de ejemplo</span>`
-      : `<span class="pill ok"><span class="dot"></span>odds-api.io${st.feed.remaining != null ? " · " + esc(st.feed.remaining) + " peticiones" : ""}</span>`,
+      : `<span class="pill ok"><span class="dot"></span>${esc(st.feed.label)}${st.feed.remaining != null ? " · " + esc(st.feed.remaining) + " peticiones" : ""}</span>`,
     `<span class="pill ${ex.connected ? "ok" : ""}"><span class="dot"></span>${esc(ex.label)}${ex.balance != null ? " · " + eur(ex.balance) : ""}</span>`,
   ].join("");
 
@@ -89,7 +89,7 @@ function renderStatus() {
 
   const nBooks = S.settings ? S.settings.bookmakers.length : 0;
   const items = [
-    [feedDemo ? null : true, "Datos de cuotas reales", feedDemo ? "Usando datos de ejemplo. Añade ODDS_API_KEY en .env (ver Guía)." : "Conectado a odds-api.io."],
+    [feedDemo ? null : true, "Datos de cuotas reales", feedDemo ? "Usando datos de ejemplo (SUREBET_FEED=demo)." : `Leyendo de: ${esc(st.feed.label.replace(/^Webs: /, ""))}.`],
     [st.live ? (ex.connected ? true : (ex.error && ex.error !== "Sin comprobar todavía." ? false : null)) : null, "Betfair conectado",
       st.live ? (ex.connected ? `Saldo disponible ${eur(ex.balance)}.` : esc(ex.error) + ` <button class="btn small" data-action="check-bf">Comprobar Betfair</button>`)
         : `En simulación (${esc(st.sim_reason)}). Saldo virtual ${eur(ex.balance)}.`],
@@ -427,7 +427,7 @@ function renderSettings() {
   const f = $("#settings");
   f.innerHTML = `
     <fieldset><legend>Casas en las que tienes cuenta (${st.bookmakers.length})</legend>
-      <p class="muted" style="margin-top:0">Marca solo casas donde puedas apostar. Las españolas (ES) salen primero. Máximo 30. Con odds-api.io, selecciona las mismas en su panel.</p>
+      <p class="muted" style="margin-top:0">Marca solo casas donde puedas apostar. Las españolas (ES) salen primero. Máximo 30. Solo se leen las casas que tienen lector (ver Guía).</p>
       <input type="search" placeholder="Filtrar casas…" id="book-filter" style="margin-bottom:10px;width:min(320px,100%)">
       <div class="checks" id="book-checks">${allBooks.map((b) => `<label data-name="${esc(b.toLowerCase())}"><input type="checkbox" name="bk" value="${esc(b)}" ${st.bookmakers.includes(b) ? "checked" : ""}> ${esc(b)}${isEs(b) ? "" : ' <span class="muted">(int.)</span>'}</label>`).join("")}</div>
     </fieldset>

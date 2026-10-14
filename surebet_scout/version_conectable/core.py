@@ -193,6 +193,10 @@ def best_legs(event, bookmakers=None, commissions=None, max_age_s=None, now=None
     keys = frozenset(o for p in allowed.values() for o in p)
     if keys not in EXHAUSTIVE:
         return None
+    # Seguro extra: en fútbol el ganador del partido siempre tiene empate.
+    if event.get("sport") == "football" and market.get("name", "ML") in ("ML", "ML HT", "ML 2H") \
+            and "draw" not in keys:
+        return None
     outcomes = [o for o in OUTCOME_ORDER if o in keys]
     best = {}
     for bk, prices in allowed.items():
