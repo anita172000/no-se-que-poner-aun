@@ -86,7 +86,7 @@ def test_odds_api_feed_batches_and_reports_errors():
                                   headers={"x-ratelimit-remaining": "99"})
         if req.url.path.endswith("/odds/multi"):
             ids = req.url.params["eventIds"].split(",")
-            assert "ML" in req.url.params["markets"].split(",")
+            assert "markets" not in req.url.params  # sin filtro = todos los mercados
             return httpx.Response(200, json=[{"id": i, "bookmakers": {}} for i in ids])
         return httpx.Response(404)
 
@@ -391,7 +391,7 @@ def test_totals_and_spread_surebets_are_detected_and_manual():
     assert keys == {"Totals:2.5", "Spread:-0.5"}
     tot = next(o for o in opps if o["market"] == "Totals:2.5")
     assert [l["label"] for l in tot["legs"]] == ["Más de 2,5", "Menos de 2,5"]
-    assert tot["market_label"] == "Más/Menos 2,5" and tot["id"] == "9|Totals:2.5"
+    assert tot["market_label"] == "Más/menos 2,5" and tot["id"] == "9|Totals:2.5"
     sp = next(o for o in opps if o["market"] == "Spread:-0.5")
     assert [l["label"] for l in sp["legs"]] == ["Sevilla (-0,5)", "Valencia (+0,5)"]
     assert not any(l["can_auto"] for o in opps for l in o["legs"])
@@ -420,3 +420,44 @@ def test_service_totals_operation_is_manual_even_with_betfair():
     assert totals
     op = svc.create_operation(totals[0]["id"], 40)
     assert all(l["mode"] == "manual" for l in op["legs"]) and op["market_label"]
+
+
+# --- todos los mercados -------------------------------------------------------
+def test_generic_markets_from_api_rows():
+    from core import scan
+    raw = {"id": 5, "home": "Betis", "away": "Sevilla", "date": "2030-01-01T20:00:00Z",
+           "sport": {"slug": "football"}, "bookmakers": {
+               "A": [{"name": "Both Teams To Score", "odds": [{"yes": "1.80", "no": "2.30", "layYes": "1.9"}]},
+                     {"name": "Corners Totals HT", "odds": [{"hdp": 4.5, "over": "2.10", "under": "1.80"}]},
+                     {"name": "Player Shots", "odds": [{"label": "Isco", "hdp": 1.5, "over": "2.2", "under": "1.6"}]},
+                     {"name": "Correct Score", "odds": [{"label": "1-0", "odds": "7.0"}, {"label": "0-0", "odds": "9.0"}]},
+                     {"name": "Double Chance", "odds": [{"1X": "1.60", "12": "1.30", "X2": "1.45"}]},
+                     {"name": "ML", "odds": [{"home": "2.0", "draw": "3.3", "away": "4.0"}]}],
+               "B": [{"name": "Both Teams To Score", "odds": [{"yes": "1.70", "no": "2.10"}]},
+                     {"name": "Corners Totals HT", "odds": [{"hdp": 4.5, "over": "1.85", "under": "2.05"}]},
+                     {"name": "Player Shots", "odds": [{"label": "Isco", "hdp": 1.5, "over": "1.9", "under": "2.0",
+                                                         "underLink": "https://b/isco-u"}]},
+                     {"name": "ML", "odds": [{"home": "2.1", "draw": "3.2", "away": "2.80"}]}]}}
+    ev = normalize_odds_api_io(raw)
+    assert "Correct Score|1-0" not in ev["markets"]  # precio único por etiqueta: no exhaustivo
+    opps = {o["market"]: o for o in scan([ev], 100)}
+    assert "Both Teams To Score" in opps and opps["Both Teams To Score"]["group"] == "Ambos marcan"
+    assert "Corners Totals HT:4.5" in opps
+    shots = opps["Player Shots|Isco:1.5"]
+    assert shots["group"] == "Jugadores" and shots["legs"][1]["url"] == "https://b/isco-u"
+    # 1X (A, 1.60) contra 2 (A, 4.0): 1/1.6 + 1/4 = 0.875 -> surebet cruzada
+    dc = [o for o in opps.values() if o["group"] == "Doble oportunidad"]
+    assert dc and {l["outcome"] for l in dc[0]["legs"]} == {"1X", "away"}
+    # Solo las patas de 1X2 (incluida la del combo) pueden ir automáticas en Betfair
+    assert all(l["can_auto"] == (l["outcome"] in ("home", "draw", "away") and o["market_type"] in ("ML", "Double Chance"))
+               for o in opps.values() for l in o["legs"])
+
+
+def test_all_sports_and_markets_by_default():
+    store = Store(":memory:")
+    svc = Service(store, DemoFeed(jitter=False), SimulatedExchange(store))
+    assert svc.settings()["sports"] == ["*"] and svc.settings()["markets"] == ["*"]
+    opps = svc.scan()
+    assert {"football", "tennis", "basketball"} <= {o["sport"] for o in opps}
+    assert len({o["group"] for o in opps}) >= 5
+    assert [o["margin"] for o in opps] == sorted((o["margin"] for o in opps), reverse=True)

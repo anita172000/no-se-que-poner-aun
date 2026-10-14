@@ -22,10 +22,10 @@ DEFAULT_SETTINGS = {
     "bookmakers": list(SPANISH_BOOKMAKERS),
     "auto_bookmaker": "Betfair Exchange",
     "commissions": {"Betfair Exchange": 0.05, "Betfair ES": 0.0},
-    "sports": ["football"],
-    "markets": ["ML", "Totals", "Spread"],  # ganador, goles más/menos, hándicap
+    "sports": ["*"],    # "*" = todos los deportes
+    "markets": ["*"],   # "*" = todos los mercados; o nombres concretos (ML, Totals...)
     "hours_ahead": 48,
-    "max_events": 50,
+    "max_events": 100,
     "budget": 50.0,
     "min_margin": 0.0,
     "max_budget_op": 100.0,
@@ -72,8 +72,8 @@ class Service:
             raise ServiceError("Máximo 30 casas por búsqueda.")
         if not new["sports"]:
             raise ServiceError("Elige al menos un deporte.")
-        if not new["markets"] or any(m not in ("ML", "Totals", "Spread") for m in new["markets"]):
-            raise ServiceError("Elige al menos un mercado válido.")
+        if not isinstance(new["markets"], list) or not new["markets"]:
+            raise ServiceError("Elige al menos un mercado.")
         if any(not 0 <= c < 0.5 for c in new["commissions"].values()):
             raise ServiceError("Las comisiones van de 0 a 0.5 (p. ej. 0.05 = 5 %).")
         if new["budget"] <= 0 or new["max_budget_op"] <= 0 or new["max_daily"] <= 0:
@@ -82,8 +82,8 @@ class Service:
             raise ServiceError("El presupuesto por defecto supera el máximo por operación.")
         if new["max_manual_stake"] <= 0 or new["book_profit_warn"] <= 0 or new["max_margin_warn"] <= 0:
             raise ServiceError("Los avisos de cuidado de cuentas deben ser positivos.")
-        if not 1 <= new["max_events"] <= 200 or not 1 <= new["hours_ahead"] <= 336:
-            raise ServiceError("Eventos (1-200) u horas (1-336) fuera de rango.")
+        if not 1 <= new["max_events"] <= 500 or not 1 <= new["hours_ahead"] <= 336:
+            raise ServiceError("Eventos (1-500) u horas (1-336) fuera de rango.")
         self.store.set_kv("settings", new)
         return new
 
@@ -122,15 +122,16 @@ class Service:
     def scan(self):
         st = self.settings()
         try:
+            markets = None if "*" in st["markets"] else st["markets"]
             events = self.feed.fetch(st["sports"], st["bookmakers"], st["hours_ahead"],
-                                     st["max_events"], st["markets"])
+                                     st["max_events"], markets)
         except FeedError as exc:
             self.last_scan = {"at": now_iso(), "events": 0, "error": str(exc)}
             raise ServiceError(str(exc))
         opps = scan(events, st["budget"], st["min_margin"], bookmakers=st["bookmakers"],
                     commissions=st["commissions"], rounding=st["rounding"],
                     max_age_s=st["max_odds_age_s"], exact_bookmakers=(st["auto_bookmaker"],),
-                    markets=st["markets"])
+                    markets=markets)
         self.store.replace_opportunities(opps)
         self.last_scan = {"at": now_iso(), "events": len(events), "error": ""}
         return self.opportunities()

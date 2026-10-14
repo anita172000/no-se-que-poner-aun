@@ -21,11 +21,19 @@ el flujo sin riesgo.
 | Pestaña | Para qué |
 |---|---|
 | **Inicio** | Estado (simulación/real, datos, saldo Betfair), gasto del día, beneficio y lista de configuración. |
-| **Oportunidades** | Busca surebets (a mano o cada 60 s) en ganador 1X2, goles más/menos y hándicap, sin tope de porcentaje. Ordena por % de beneficio, € de beneficio o fecha, con filtro de % mínimo y de mercado. |
+| **Oportunidades** | Busca surebets (a mano o cada 60 s) en **todos los deportes y todos los mercados y líneas** que da la API: ganador, más/menos, hándicaps, ambos marcan, córners, tarjetas, jugadores, periodos, sets, mapas… y doble oportunidad cruzada con el 1X2. Sin tope de porcentaje. Ordena por % de beneficio, € de beneficio o fecha, con filtros de % mínimo, tipo de mercado y deporte. |
 | **Operaciones** | Guía paso a paso: primero las apuestas manuales (anotas la cuota real), después Betfair automático con la cuota en vivo. Muestra el beneficio por resultado y el riesgo abierto. |
 | **Historial** | Todas las operaciones, liquidación y exportación a CSV. |
 | **Ajustes** | Tus casas, comisiones, deportes, límites de dinero y redondeo de importes. |
 | **Guía** | Cómo sacar las claves, activar el modo real y riesgos. |
+
+## Qué cuenta como surebet
+
+Solo se comparan grupos de resultados que cubren **todas** las posibilidades: 1X2, local/visitante,
+más/menos de una línea, sí/no, par/impar, local/visitante/ninguno, y doble oportunidad
+contra el 1X2 del mismo periodo (1X–2, 12–X, X2–1). Los mercados con un precio por etiqueta
+(resultado exacto, goleador, etc.) se descartan: no garantizan cubrirlo todo y una "surebet"
+ahí podría perder.
 
 ## Conexiones
 

@@ -8,7 +8,13 @@ const pct = (n) => nf2.format(n * 100) + " %";
 const signed = (n) => `<span class="num ${n >= 0 ? "pos" : "neg"}">${n >= 0 ? "+" : ""}${eur(n)}</span>`;
 const fdate = (iso) => (iso ? new Date(iso).toLocaleString("es-ES", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "");
 const ago = (iso) => { if (!iso) return ""; const s = Math.round((Date.now() - new Date(iso)) / 1000); return s < 60 ? `hace ${s} s` : `hace ${Math.round(s / 60)} min`; };
-const SPORTS_ES = { football: "Fútbol", tennis: "Tenis", basketball: "Baloncesto" };
+const SPORTS_ES = {
+  football: "Fútbol", tennis: "Tenis", basketball: "Baloncesto", "ice-hockey": "Hockey hielo",
+  esports: "Esports", baseball: "Béisbol", "american-football": "Fútbol americano", handball: "Balonmano",
+  volleyball: "Voleibol", rugby: "Rugby", cricket: "Críquet", darts: "Dardos", snooker: "Snooker",
+  "table-tennis": "Tenis de mesa", boxing: "Boxeo", "mixed-martial-arts": "MMA", badminton: "Bádminton",
+  "aussie-rules": "Fútbol australiano",
+};
 const STATE_BADGE = { abierta: "blue", "en curso": "amber", completa: "", expuesta: "red", liquidada: "grey", cancelada: "grey" };
 const evName = (o) => esc(o.home) + (o.away ? ` <span class="muted">vs</span> ${esc(o.away)}` : "");
 const effOdds = (o, c) => 1 + (o - 1) * (1 - (c || 0));
@@ -193,7 +199,9 @@ function saveView() { try { localStorage.setItem("oppView", JSON.stringify(VIEW)
 function visibleOpps() {
   const minPct = VIEW.min || 0, market = VIEW.market || "", sort = VIEW.sort || "margin";
   const budget = S.settings ? S.settings.budget : 50;
-  const list = S.opps.filter((o) => o.margin * 100 >= minPct && (!market || (o.market_type || "ML") === market));
+  const sport = VIEW.sport || "";
+  const list = S.opps.filter((o) => o.margin * 100 >= minPct && (!market || (o.group || "Ganador") === market)
+    && (!sport || o.sport === sport));
   const key = {
     margin: (o) => -o.margin,
     profit: (o) => -planFor(o, budget).min,
@@ -201,8 +209,15 @@ function visibleOpps() {
   }[sort];
   return list.map((o) => [key(o), o]).sort((a, b) => a[0] - b[0]).map((x) => x[1]);
 }
+function fillFilter(sel, values, labelFn, current) {
+  const opts = [...new Set(values)].sort((a, b) => labelFn(a).localeCompare(labelFn(b)));
+  if (current && !opts.includes(current)) opts.unshift(current);
+  sel.innerHTML = `<option value="">Todos</option>` + opts.map((v) => `<option value="${esc(v)}" ${v === current ? "selected" : ""}>${esc(labelFn(v))}</option>`).join("");
+}
 function renderOpps() {
   const ls = S.lastScan || {};
+  fillFilter($("#opp-market"), S.opps.map((o) => o.group || "Ganador"), (g) => g, VIEW.market || "");
+  fillFilter($("#opp-sport"), S.opps.map((o) => o.sport), (sp) => SPORTS_ES[sp] || sp, VIEW.sport || "");
   const list = visibleOpps();
   const hidden = S.opps.length - list.length;
   $("#scan-info").textContent = (ls.at ? `Última búsqueda ${ago(ls.at)} · ${ls.events} eventos analizados` : "") +
@@ -225,9 +240,9 @@ $("#opps").addEventListener("input", (e) => {
 $("#btn-scan").addEventListener("click", (e) => doScan(e.currentTarget));
 $("#opp-sort").value = VIEW.sort || "margin";
 $("#opp-min").value = VIEW.min || 0;
-$("#opp-market").value = VIEW.market || "";
-["#opp-sort", "#opp-min", "#opp-market"].forEach((id) => $(id).addEventListener("change", () => {
-  VIEW.sort = $("#opp-sort").value; VIEW.min = parseFloat($("#opp-min").value) || 0; VIEW.market = $("#opp-market").value;
+["#opp-sort", "#opp-min", "#opp-market", "#opp-sport"].forEach((id) => $(id).addEventListener("change", () => {
+  VIEW.sort = $("#opp-sort").value; VIEW.min = parseFloat($("#opp-min").value) || 0;
+  VIEW.market = $("#opp-market").value; VIEW.sport = $("#opp-sport").value;
   saveView(); renderOpps();
 }));
 let autoTimer = null;
@@ -406,7 +421,9 @@ function renderSettings() {
   const allBooks = [...new Set([...st.bookmakers, ...cat.bookmakers])];
   const isEs = (b) => / ES$/.test(b) || /betfair/i.test(b);
   allBooks.sort((a, b) => (isEs(b) - isEs(a)) || a.localeCompare(b));
-  const sports = cat.sports.length ? cat.sports : st.sports.map((s) => ({ slug: s, name: s }));
+  const sports = cat.sports.length ? cat.sports : st.sports.filter((s) => s !== "*").map((s) => ({ slug: s, name: s }));
+  const allSports = st.sports.includes("*");
+  const allMarkets = (st.markets || ["*"]).includes("*");
   const f = $("#settings");
   f.innerHTML = `
     <fieldset><legend>Casas en las que tienes cuenta (${st.bookmakers.length})</legend>
@@ -422,15 +439,19 @@ function renderSettings() {
       <div class="fields" id="comm-fields"></div>
     </fieldset>
     <fieldset><legend>Deportes</legend>
-      <div class="checks">${sports.map((s) => `<label><input type="checkbox" name="sport" value="${esc(s.slug)}" ${st.sports.includes(s.slug) ? "checked" : ""}> ${esc(SPORTS_ES[s.slug] || s.name)}</label>`).join("")}</div>
+      <label class="switch" style="margin-bottom:10px"><input type="checkbox" name="sport_all" ${allSports ? "checked" : ""}> <b>Todos los deportes</b></label>
+      <div class="checks" id="sport-checks" ${allSports ? 'style="opacity:.45;pointer-events:none"' : ""}>${sports.map((s) => `<label><input type="checkbox" name="sport" value="${esc(s.slug)}" ${allSports || st.sports.includes(s.slug) ? "checked" : ""}> ${esc(SPORTS_ES[s.slug] || s.name)}</label>`).join("")}</div>
     </fieldset>
     <fieldset><legend>Mercados</legend>
-      <div class="checks">${[["ML", "Ganador del partido (1X2)"], ["Totals", "Goles / puntos más-menos"], ["Spread", "Hándicap"]].map(([v, t]) => `<label><input type="checkbox" name="market" value="${v}" ${(st.markets || ["ML"]).includes(v) ? "checked" : ""}> ${t}</label>`).join("")}</div>
-      <p class="muted">Más mercados = más surebets. Betfair solo puede ir automático en «Ganador del partido»; en goles y hándicap todas las apuestas son manuales.</p>
+      <div class="checks" style="max-height:none;grid-template-columns:1fr">
+        <label><input type="radio" name="market_scope" value="all" ${allMarkets ? "checked" : ""}> <span><b>Todos los mercados y líneas</b> (ganador, más/menos, hándicaps, ambos marcan, córners, tarjetas, jugadores, periodos, sets, mapas…)</span></label>
+        <label><input type="radio" name="market_scope" value="main" ${allMarkets ? "" : "checked"}> <span>Solo principales (ganador, más/menos y hándicap del partido)</span></label>
+      </div>
+      <p class="muted">Solo se comparan resultados que cubren todas las posibilidades (más/menos, sí/no, 1X2, par/impar, doble oportunidad contra 1X2…). Mercados como resultado exacto o goleador no se usan porque no garantizan cubrirlo todo. Betfair solo apuesta automático en el ganador del partido; el resto es manual.</p>
     </fieldset>
     <fieldset><legend>Búsqueda</legend><div class="fields">
       <label>Horas hacia delante<input type="number" name="hours_ahead" min="1" max="336" value="${st.hours_ahead}"></label>
-      <label>Máx. eventos por búsqueda<input type="number" name="max_events" min="1" max="200" value="${st.max_events}"></label>
+      <label>Máx. eventos por búsqueda<input type="number" name="max_events" min="1" max="500" value="${st.max_events}"></label>
       <label>Ignorar cuotas con más de (s)<input type="number" name="max_odds_age_s" min="10" value="${st.max_odds_age_s}"></label>
       <label>Margen mínimo (%)<input type="number" name="min_margin_pct" step="0.1" min="0" value="${+(st.min_margin * 100).toFixed(2)}"></label>
     </div></fieldset>
@@ -459,7 +480,13 @@ function renderCommissions() {
     return `<label>${esc(b)}<input type="number" step="0.1" min="0" max="49" data-bk="${esc(b)}" value="${v}"></label>`;
   }).join("");
 }
-$("#settings").addEventListener("change", (e) => { if (e.target.name === "bk") renderCommissions(); });
+$("#settings").addEventListener("change", (e) => {
+  if (e.target.name === "bk") renderCommissions();
+  if (e.target.name === "sport_all") {
+    const box = $("#sport-checks");
+    box.style.opacity = e.target.checked ? ".45" : ""; box.style.pointerEvents = e.target.checked ? "none" : "";
+  }
+});
 $("#settings").addEventListener("input", (e) => {
   if (e.target.id !== "book-filter") return;
   const q = e.target.value.toLowerCase();
@@ -472,8 +499,8 @@ $("#settings").addEventListener("submit", (e) => {
   document.querySelectorAll("#comm-fields input").forEach((i) => { const v = parseFloat(i.value) || 0; if (v) commissions[i.dataset.bk] = v / 100; });
   const body = {
     bookmakers: [...f.querySelectorAll('input[name="bk"]:checked')].map((i) => i.value),
-    sports: [...f.querySelectorAll('input[name="sport"]:checked')].map((i) => i.value),
-    markets: [...f.querySelectorAll('input[name="market"]:checked')].map((i) => i.value),
+    sports: f.sport_all.checked ? ["*"] : [...f.querySelectorAll('input[name="sport"]:checked')].map((i) => i.value),
+    markets: f.querySelector('input[name="market_scope"]:checked').value === "all" ? ["*"] : ["ML", "Totals", "Spread"],
     auto_bookmaker: f.auto_bookmaker.value, commissions,
     hours_ahead: f.hours_ahead.value, max_events: f.max_events.value, max_odds_age_s: f.max_odds_age_s.value,
     min_margin: (parseFloat(f.min_margin_pct.value) || 0) / 100,
