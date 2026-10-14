@@ -142,6 +142,10 @@ def create_app(service=None):
     def place(op_id: int, leg_id: int, body: dict = Body(...)):
         return svc.place_auto(op_id, leg_id, body.get("confirm"), bool(body.get("accept_worse")))
 
+    @app.get("/api/bookmakers/stats")
+    def bookmaker_stats():
+        return svc.bookmaker_stats()
+
     @app.get("/api/export.csv")
     def export():
         return Response(svc.export_csv().encode("utf-8-sig"), media_type="text/csv",

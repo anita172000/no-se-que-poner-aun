@@ -92,6 +92,10 @@
       <a class="btn" href="/api/export.csv" download>Exportar CSV</a>
       <span class="muted">Todas las operaciones, con cada apuesta (cuota y importe planificados y reales).</span>
     </div>
+    <div class="card flush books"><div class="books-head"><h2>Tus casas</h2>
+      <span class="muted">Las casas normales limitan antes a quien gana o mueve mucho en ellas: reparte. Betfair (exchange) no limita por ganar.</span></div>
+      <div class="tablewrap"><table class="table" id="books"></table></div></div>
+    <h2 style="margin:22px 0 12px">Operaciones</h2>
     <div class="card flush"><div class="tablewrap"><table class="table" id="hist"></table></div></div>
   </section>
 
@@ -135,6 +139,18 @@
         <h2>5 · Surebets de BetOven u otro escáner</h2>
         <p>BetOven Scanner es un programa cerrado: no tiene API ni exportación, y sus condiciones prohíben la ingeniería inversa. Por eso no se puede conectar de forma automática ni fiable.</p>
         <p>Cuando veas una surebet en BetOven, ve a <b>Oportunidades → Añadir una surebet de BetOven</b> y copia el evento, las selecciones, las casas y las cuotas. La web calcula cuánto apostar en cada una y te guía igual que con las suyas. Vale para cualquier mercado: goles, hándicap, córners…</p>
+      </div>
+      <div class="card">
+        <h2>6 · Cuidar tus cuentas</h2>
+        <p>Las casas limitan sobre todo por <b>qué</b> apuestas (siempre cuotas por encima del mercado), más que por cuánto. Nada lo evita del todo, pero esto ayuda a durar más:</p>
+        <ul>
+          <li><b>Importes redondos</b> (Ajustes → redondeo a 1, 5 o 10 €).</li>
+          <li><b>No te pases de importe</b> en casas normales (Ajustes → apuesta manual máxima). La web avisa.</li>
+          <li><b>Reparte</b> entre casas: en Historial → «Tus casas» ves cuánto llevas ganado en cada una.</li>
+          <li><b>Evita las cuotas erróneas</b> (margen muy alto): las anulan y te marcan. La web las señala.</li>
+          <li><b>La parte grande, en Betfair</b>: es un exchange y no limita por ganar.</li>
+        </ul>
+        <p class="muted">No uses cuentas de otras personas, varias cuentas propias en la misma casa ni VPN: es fraude según sus condiciones y pueden quedarse con tu saldo.</p>
       </div>
       <div class="card warn">
         <h2>Riesgos reales</h2>

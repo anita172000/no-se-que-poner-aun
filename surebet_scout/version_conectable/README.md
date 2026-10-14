@@ -48,6 +48,21 @@ reparto, y al crearla se gestiona como cualquier otra operación. Admite cualqui
 (2 a 4 apuestas). Las patas 1/X/2 en Betfair con equipos y fecha pueden ir automáticas.
 Las demás son manuales.
 
+## Cuidar tus cuentas
+
+Las casas limitan sobre todo por el tipo de apuesta (siempre cuotas por encima del mercado),
+así que nada lo evita del todo. La web ayuda a durar más:
+
+- Redondeo de importes (céntimos, 0,50, 1, 5 o 10 €). Elige la combinación que más gana en el
+  peor resultado.
+- Aviso cuando una apuesta manual supera tu máximo recomendado por casa.
+- Aviso de margen sospechosamente alto (posible error de cuota: suelen anularse y marcar la cuenta).
+- **Historial → Tus casas**: apuestas, volumen, pendiente y beneficio por casa, con aviso cuando
+  llevas mucho ganado en una casa normal.
+
+No se ayuda a usar cuentas ajenas, varias cuentas en la misma casa ni VPN: es fraude según
+sus condiciones y pueden retener el saldo.
+
 ## Salvaguardas
 
 - Simulación por defecto. Solo se apuesta de verdad con `SUREBET_LIVE=1` y las claves de Betfair.

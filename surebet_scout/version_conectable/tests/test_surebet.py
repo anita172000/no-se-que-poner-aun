@@ -353,3 +353,23 @@ def test_external_rejects_non_surebet_and_bad_input():
         svc.create_external_operation({"home": "X", "legs": [legs[0], legs[0]]})
     with pytest.raises(ServiceError):
         svc.create_external_operation({"home": "", "legs": legs})
+
+
+# --- cuidado de cuentas -------------------------------------------------------
+def test_bookmaker_stats_track_profit_per_house():
+    svc = make_service()
+    svc.update_settings({"book_profit_warn": 5})
+    op = svc.create_external_operation({
+        "home": "A", "away": "B", "budget": 40,
+        "legs": [{"kind": "home", "bookmaker": "Codere ES", "odds": 2.2},
+                 {"kind": "away", "bookmaker": "Bwin ES", "odds": 2.1}]})
+    for l in op["legs"]:
+        svc.register_manual(op["id"], l["id"], l["planned_odds"], l["planned_stake"])
+    pending = {b["bookmaker"]: b for b in svc.bookmaker_stats()}
+    assert pending["Codere ES"]["open_stake"] > 0 and pending["Codere ES"]["profit"] == 0
+    svc.settle(op["id"], "home")
+    stats = {b["bookmaker"]: b for b in svc.bookmaker_stats()}
+    codere, bwin = stats["Codere ES"], stats["Bwin ES"]
+    assert codere["profit"] == pytest.approx(codere["staked"] * 1.2, abs=0.01)
+    assert bwin["profit"] == -bwin["staked"]
+    assert codere["warn"] and not bwin["warn"] and codere["open_stake"] == 0

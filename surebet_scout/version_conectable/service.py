@@ -32,6 +32,10 @@ DEFAULT_SETTINGS = {
     "rounding": 0.5,
     "max_odds_age_s": 300,
     "opp_max_age_s": 900,
+    # Cuidar las cuentas en casas normales
+    "max_manual_stake": 50.0,     # aviso si una apuesta manual supera esto
+    "max_margin_warn": 0.05,      # margen tan alto suele ser error de cuota (se anula)
+    "book_profit_warn": 150.0,    # aviso cuando llevas mucho ganado en una casa
 }
 PREPARE_TTL_S = 60
 
@@ -55,7 +59,8 @@ class Service:
         try:
             for k in ("hours_ahead", "max_events", "max_odds_age_s", "opp_max_age_s"):
                 new[k] = int(new[k])
-            for k in ("budget", "min_margin", "max_budget_op", "max_daily", "rounding"):
+            for k in ("budget", "min_margin", "max_budget_op", "max_daily", "rounding",
+                      "max_manual_stake", "max_margin_warn", "book_profit_warn"):
                 new[k] = float(new[k])
             new["commissions"] = {str(b): float(c) for b, c in (new["commissions"] or {}).items()}
         except (TypeError, ValueError):
@@ -72,6 +77,8 @@ class Service:
             raise ServiceError("Los importes deben ser positivos.")
         if new["budget"] > new["max_budget_op"]:
             raise ServiceError("El presupuesto por defecto supera el máximo por operación.")
+        if new["max_manual_stake"] <= 0 or new["book_profit_warn"] <= 0 or new["max_margin_warn"] <= 0:
+            raise ServiceError("Los avisos de cuidado de cuentas deben ser positivos.")
         if not 1 <= new["max_events"] <= 200 or not 1 <= new["hours_ahead"] <= 336:
             raise ServiceError("Eventos (1-200) u horas (1-336) fuera de rango.")
         self.store.set_kv("settings", new)
@@ -474,6 +481,40 @@ class Service:
         return "Queda riesgo abierto: cubre el resultado que falta en otra casa o liquida."
 
     # --- exportación ------------------------------------------------------
+    def bookmaker_stats(self):
+        """Actividad por casa: apuestas, volumen, beneficio liquidado y pendiente.
+
+        Sirve para repartir: las casas tradicionales limitan antes a quien gana
+        mucho o mueve mucho volumen en ellas.
+        """
+        st = self.settings()
+        stats = {}
+        for op in self.store.operations():
+            settled = op.get("settled")
+            for l in op["legs"]:
+                if l["status"] != "placed":
+                    continue
+                b = stats.setdefault(l["bookmaker"], {"bookmaker": l["bookmaker"], "bets": 0,
+                                                      "staked": 0.0, "profit": 0.0,
+                                                      "open_stake": 0.0, "last_at": ""})
+                b["bets"] += 1
+                b["staked"] += l["stake"]
+                b["last_at"] = max(b["last_at"], l.get("placed_at") or "")
+                if not settled:
+                    b["open_stake"] += l["stake"]
+                elif settled["winner"] == l["outcome"]:
+                    b["profit"] += l["stake"] * (effective_odds(l["odds"], l["commission"]) - 1)
+                elif settled["winner"] != "void":
+                    b["profit"] -= l["stake"]
+        out = []
+        for b in stats.values():
+            for k in ("staked", "profit", "open_stake"):
+                b[k] = round(b[k], 2)
+            b["exchange"] = b["bookmaker"] == st["auto_bookmaker"]
+            b["warn"] = not b["exchange"] and b["profit"] >= st["book_profit_warn"]
+            out.append(b)
+        return sorted(out, key=lambda b: -b["profit"])
+
     def export_csv(self):
         buf = io.StringIO()
         w = csv.writer(buf, delimiter=";")

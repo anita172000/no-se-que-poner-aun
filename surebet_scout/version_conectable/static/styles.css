@@ -132,6 +132,10 @@ input[type=number] { width: 110px; }
 .empty { text-align: center; padding: 50px 20px; color: var(--muted); }
 .empty b { display: block; color: var(--text); font-size: 17px; margin-bottom: 4px; }
 
+.books-head { padding: 16px 20px 6px; display: grid; gap: 2px; }
+.books-head h2 { margin: 0; }
+.warnline { font-size: 13px; color: var(--warn); background: var(--warn-soft); border-radius: 8px; padding: 6px 10px; }
+
 /* Surebet externa */
 .ext { margin-bottom: 18px; }
 .ext summary { cursor: pointer; list-style: none; }

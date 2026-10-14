@@ -40,7 +40,7 @@ async function run(fn, btn) {
 }
 
 // ---------- estado ----------
-const S = { status: null, settings: null, opps: [], lastScan: null, ops: [], selOp: null, catalog: null, editing: {}, tab: "inicio" };
+const S = { books: [], status: null, settings: null, opps: [], lastScan: null, ops: [], selOp: null, catalog: null, editing: {}, tab: "inicio" };
 
 // ---------- pestañas ----------
 function setTab(tab) {
@@ -148,6 +148,20 @@ function planFor(opp, budget) {
   walk(0, []);
   return best || { stakes: options.map((o) => o[0]), total: 0, min: 0 };
 }
+// Avisos para cuidar las cuentas de las casas normales.
+function careWarnings(legs, stakes, margin) {
+  const st = S.settings; if (!st) return [];
+  const w = [];
+  if (margin > st.max_margin_warn) w.push(`Margen muy alto (${pct(margin)}): puede ser un error de cuota; las casas suelen anularlas y marcar la cuenta.`);
+  legs.forEach((l, i) => {
+    if (l.mode !== "auto" && stakes[i] > st.max_manual_stake) w.push(`${l.bookmaker}: ${eur(stakes[i])} supera tu máximo recomendado (${eur(st.max_manual_stake)}). Baja el presupuesto.`);
+    const b = S.books.find((x) => x.bookmaker === l.bookmaker);
+    if (b && b.warn) w.push(`Ya llevas ${eur(b.profit)} ganados en ${l.bookmaker}: mejor reparte en otras casas.`);
+  });
+  return [...new Set(w)];
+}
+const careHtml = (w) => w.map((t) => `<div class="warnline">⚠ ${esc(t)}</div>`).join("");
+
 function oppCard(o) {
   const budget = S.settings ? S.settings.budget : o.budget;
   const p = planFor(o, budget);
@@ -164,6 +178,7 @@ function oppCard(o) {
           <span class="chip ${l.mode}">${l.mode === "auto" ? "AUTO" : "MANUAL"}</span>${l.commission ? ` <span class="muted">(${pct(l.commission)} com.)</span>` : ""}</td>
         <td class="r num"><b>${nf2.format(l.odds)}</b></td><td class="r num" data-stake="${i}">${eur(p.stakes[i])}</td></tr>`).join("")}
     </tbody></table>
+    <div data-care>${careHtml(careWarnings(o.legs, p.stakes, o.margin))}</div>
     <footer>
       <label class="budget">Presupuesto <input type="number" min="1" step="1" value="${budget}" data-budget> €</label>
       <span>Ganas mínimo <b data-minprofit>${signed(p.min)}</b></span>
@@ -187,6 +202,7 @@ $("#opps").addEventListener("input", (e) => {
   const p = planFor(o, b);
   card.querySelectorAll("[data-stake]").forEach((td) => (td.textContent = eur(p.stakes[+td.dataset.stake])));
   card.querySelector("[data-minprofit]").innerHTML = signed(p.min);
+  card.querySelector("[data-care]").innerHTML = careHtml(careWarnings(o.legs, p.stakes, o.margin));
 });
 $("#btn-scan").addEventListener("click", (e) => doScan(e.currentTarget));
 let autoTimer = null;
@@ -199,6 +215,7 @@ $("#auto-scan").addEventListener("change", (e) => {
 async function loadOps() {
   S.ops = await api("/api/operations");
   renderOps(); renderHistory();
+  loadBooks().catch(() => {});
 }
 function opById(id) { return S.ops.find((o) => o.id === id); }
 function renderOps() {
@@ -251,6 +268,7 @@ function stepBody(op, l) {
     return head + `<div>Apuesta <b>${eur(l.suggested_stake)}</b> a <b>${esc(l.label)}</b> con cuota <b>${nf2.format(l.planned_odds)}</b> o mejor.
       ${l.url ? `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">Abrir ${esc(l.bookmaker)} ↗</a>` : ""}</div>
       <div class="muted">Si la cuota ha bajado, anota la real: los importes pendientes se recalculan. Si ya no compensa, pulsa «No pude».</div>
+      ${careHtml(careWarnings([l], [l.suggested_stake], 0))}
       ${manualForm(op, l, l.planned_odds, l.suggested_stake)}
       <div><button class="btn ghost small" data-action="skip" data-op="${op.id}" data-leg="${l.id}">No pude hacerla</button>
       ${l.bookmaker === S.settings?.auto_bookmaker && l.can_auto !== false ? `<button class="btn ghost small" data-action="mode" data-mode="auto" data-op="${op.id}" data-leg="${l.id}">Hacerla automática</button>` : ""}</div>`;
@@ -320,7 +338,7 @@ function opDetail(op) {
 function replaceOp(op) {
   const i = S.ops.findIndex((o) => o.id === op.id);
   if (i >= 0) S.ops[i] = op; else S.ops.unshift(op);
-  renderOps(); renderHistory(); loadStatus();
+  renderOps(); renderHistory(); loadStatus(); loadBooks().catch(() => {});
 }
 function openOp(id) {
   S.selOp = id;
@@ -329,6 +347,19 @@ function openOp(id) {
 }
 
 // ---------- historial ----------
+async function loadBooks() {
+  S.books = await api("/api/bookmakers/stats");
+  renderBooks();
+}
+function renderBooks() {
+  const t = $("#books"); if (!t) return;
+  t.innerHTML = `<thead><tr><th>Casa</th><th class="r">Apuestas</th><th class="r">Volumen</th><th class="r">Pendiente</th><th class="r">Beneficio</th><th>Última</th><th></th></tr></thead><tbody>
+    ${S.books.length ? S.books.map((b) => `<tr><td><b>${esc(b.bookmaker)}</b>${b.exchange ? ' <span class="chip auto">EXCHANGE</span>' : ""}</td>
+      <td class="r num">${b.bets}</td><td class="r num">${eur(b.staked)}</td><td class="r num">${eur(b.open_stake)}</td>
+      <td class="r">${signed(b.profit)}</td><td>${esc(fdate(b.last_at))}</td>
+      <td>${b.warn ? '<span class="badge amber">reparte</span>' : ""}</td></tr>`).join("")
+      : `<tr><td colspan="7" class="empty">Aún no hay apuestas.</td></tr>`}</tbody>`;
+}
 function renderHistory() {
   $("#hist").innerHTML = `<thead><tr><th>#</th><th>Creada</th><th>Evento</th><th>Estado</th><th class="r">Apostado</th><th class="r">Beneficio</th></tr></thead><tbody>
     ${S.ops.length ? S.ops.map((o) => {
@@ -379,8 +410,13 @@ function renderSettings() {
       <label>Presupuesto por defecto (€)<input type="number" name="budget" min="1" step="1" value="${st.budget}"></label>
       <label>Máximo por operación (€)<input type="number" name="max_budget_op" min="1" step="1" value="${st.max_budget_op}"></label>
       <label>Máximo diario (€)<input type="number" name="max_daily" min="1" step="1" value="${st.max_daily}"></label>
-      <label>Redondear apuestas manuales a<select name="rounding">${[[0.01, "céntimos"], [0.5, "0,50 €"], [1, "1 €"], [5, "5 €"]].map(([v, t]) => `<option value="${v}" ${+st.rounding === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+      <label>Redondear apuestas manuales a<select name="rounding">${[[0.01, "céntimos"], [0.5, "0,50 €"], [1, "1 €"], [5, "5 €"], [10, "10 €"]].map(([v, t]) => `<option value="${v}" ${+st.rounding === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
     </div><p class="muted">Redondear a cifras redondas hace las apuestas menos llamativas para las casas.</p></fieldset>
+    <fieldset><legend>Cuidar tus cuentas</legend><div class="fields">
+      <label>Apuesta manual máxima recomendada (€)<input type="number" name="max_manual_stake" min="1" step="1" value="${st.max_manual_stake}"></label>
+      <label>Avisar de posible error de cuota si margen &gt; (%)<input type="number" name="max_margin_warn_pct" min="0.5" step="0.5" value="${+(st.max_margin_warn * 100).toFixed(2)}"></label>
+      <label>Avisar cuando lleves ganado en una casa (€)<input type="number" name="book_profit_warn" min="1" step="1" value="${st.book_profit_warn}"></label>
+    </div><p class="muted">Solo son avisos: la web te señala cuándo una apuesta o una casa puede llamar la atención.</p></fieldset>
     <div class="savebar"><button class="btn primary" type="submit">Guardar ajustes</button></div>`;
   renderCommissions();
 }
@@ -413,6 +449,8 @@ $("#settings").addEventListener("submit", (e) => {
     hours_ahead: f.hours_ahead.value, max_events: f.max_events.value, max_odds_age_s: f.max_odds_age_s.value,
     min_margin: (parseFloat(f.min_margin_pct.value) || 0) / 100,
     budget: f.budget.value, max_budget_op: f.max_budget_op.value, max_daily: f.max_daily.value, rounding: f.rounding.value,
+    max_manual_stake: f.max_manual_stake.value, book_profit_warn: f.book_profit_warn.value,
+    max_margin_warn: (parseFloat(f.max_margin_warn_pct.value) || 5) / 100,
   };
   run(async () => {
     S.settings = await api("/api/settings", { method: "PUT", body });
@@ -561,6 +599,7 @@ setInterval(() => {
   await run(async () => {
     await loadSettings();
     await Promise.all([loadStatus(), loadOpps(), loadOps(), loadCatalog()]);
+    await loadBooks(); renderOpps();
   });
   const tab = location.hash.slice(1);
   if (document.getElementById("tab-" + tab)) setTab(tab);
