@@ -56,6 +56,27 @@
       <label class="switch"><input type="checkbox" id="auto-scan"> Buscar cada 60 s</label>
       <span class="muted" id="scan-info"></span>
     </div>
+    <details class="card ext" id="ext">
+      <summary><b>＋ Añadir una surebet de BetOven u otro escáner</b><span class="muted"> · cópiala a mano y la web calcula los importes y guía la operación</span></summary>
+      <form id="ext-form" class="extform" autocomplete="off">
+        <div class="fields">
+          <label>Origen<input name="source" value="BetOven" maxlength="40"></label>
+          <label>Equipo local / evento<input name="home" required maxlength="80" placeholder="Real Betis"></label>
+          <label>Equipo visitante<input name="away" maxlength="80" placeholder="Villarreal"></label>
+          <label>Fecha y hora del partido<input name="date" type="datetime-local"></label>
+          <label>Deporte<input name="sport" maxlength="30" placeholder="Fútbol"></label>
+          <label>Presupuesto (€)<input name="budget" type="number" min="1" step="1"></label>
+        </div>
+        <div class="extlegs" id="ext-legs"></div>
+        <div class="actions">
+          <button type="button" class="btn small" id="ext-add">＋ Otra apuesta</button>
+          <span id="ext-preview" class="muted"></span>
+        </div>
+        <p class="muted">Pon los resultados que cubren todas las posibilidades (p. ej. «Más de 2.5» y «Menos de 2.5»). Si una apuesta es 1, X o 2 en Betfair y has puesto equipos y fecha, podrá ir automática. Las demás se hacen a mano.</p>
+        <div class="actions"><button class="btn primary" type="submit">Crear operación</button></div>
+      </form>
+    </details>
+    <datalist id="books-list"></datalist>
     <div class="opps" id="opps"></div>
   </section>
 
@@ -109,6 +130,11 @@
       <div class="card">
         <h2>4 · Las casas sin API</h2>
         <p>Bwin, Codere, Luckia y el resto <b>no permiten apostar por programa</b>, solo desde su web o app. Por eso esas apuestas las haces tú: la web te dice casa, resultado, cuota e importe, y tú anotas lo que conseguiste. Automatizar su web con tu contraseña está prohibido en sus condiciones y acaba en cierre de cuenta.</p>
+      </div>
+      <div class="card">
+        <h2>5 · Surebets de BetOven u otro escáner</h2>
+        <p>BetOven Scanner es un programa cerrado: no tiene API ni exportación, y sus condiciones prohíben la ingeniería inversa. Por eso no se puede conectar de forma automática ni fiable.</p>
+        <p>Cuando veas una surebet en BetOven, ve a <b>Oportunidades → Añadir una surebet de BetOven</b> y copia el evento, las selecciones, las casas y las cuotas. La web calcula cuánto apostar en cada una y te guía igual que con las suyas. Vale para cualquier mercado: goles, hándicap, córners…</p>
       </div>
       <div class="card warn">
         <h2>Riesgos reales</h2>

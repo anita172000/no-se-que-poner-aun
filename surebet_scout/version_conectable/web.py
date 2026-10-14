@@ -101,6 +101,10 @@ def create_app(service=None):
     def create_op(body: dict = Body(...)):
         return svc.create_operation(body.get("opportunity_id"), body.get("budget"))
 
+    @app.post("/api/operations/external")
+    def create_external(body: dict = Body(...)):
+        return svc.create_external_operation(body)
+
     @app.get("/api/operations/{op_id}")
     def get_op(op_id: int):
         return svc.operation(op_id)

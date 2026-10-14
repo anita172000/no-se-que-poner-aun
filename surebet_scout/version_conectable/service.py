@@ -133,24 +133,28 @@ class Service:
         return out
 
     # --- operaciones ------------------------------------------------------
-    def create_operation(self, opp_id, budget=None):
+    def _check_budget(self, budget):
         st = self.settings()
-        opp = self.store.opportunity(opp_id)
-        if not opp:
-            raise ServiceError("Esa oportunidad ya no existe. Vuelve a buscar.")
-        age = time.time() - parse_iso(opp["found_at"]).timestamp()
-        if age > st["opp_max_age_s"]:
-            raise ServiceError("Las cuotas de esta oportunidad son antiguas. Vuelve a buscar.")
-        budget = float(budget or st["budget"])
+        try:
+            budget = float(budget or st["budget"])
+        except (TypeError, ValueError):
+            raise ServiceError("El presupuesto debe ser un número.")
         if budget <= 0:
             raise ServiceError("El presupuesto debe ser positivo.")
         if budget > st["max_budget_op"]:
             raise ServiceError(f"Supera tu máximo por operación ({st['max_budget_op']} €).")
         if self.spent_today() + budget > st["max_daily"]:
             raise ServiceError(f"Superarías tu límite diario ({st['max_daily']} €).")
+        return budget
+
+    def _new_operation(self, meta, in_legs, budget, margin, msg):
+        """in_legs: dicts con outcome, label, bookmaker, odds, commission, url y
+        can_auto (si esa pata puede ir por la API de Betfair)."""
+        st = self.settings()
         plan_legs = []
-        for l in opp["legs"]:
-            mode = "auto" if l["bookmaker"] == st["auto_bookmaker"] else "manual"
+        for l in in_legs:
+            mode = "auto" if l.get("can_auto", True) and l["bookmaker"] == st["auto_bookmaker"] \
+                else "manual"
             plan_legs.append({**l, "mode": mode, "eff": effective_odds(l["odds"], l["commission"]),
                               "step": 0.01 if mode == "auto" else st["rounding"]})
         stakes, _ = plan_stakes(plan_legs, budget)
@@ -159,19 +163,87 @@ class Service:
             legs.append({
                 "id": i, "outcome": l["outcome"], "label": l["label"],
                 "bookmaker": l["bookmaker"], "url": l.get("url", ""), "mode": l["mode"],
+                "can_auto": l.get("can_auto", True),
                 "planned_odds": l["odds"], "commission": l["commission"],
                 "planned_stake": stake,
                 "status": "pending", "odds": None, "stake": None, "ref": "",
                 "placed_at": None, "simulated": None, "note": "", "prepared": None,
             })
         op = {
-            "created_at": now_iso(), "event_id": opp["event_id"], "sport": opp["sport"],
-            "league": opp["league"], "home": opp["home"], "away": opp["away"],
-            "date": opp["date"], "margin": opp["margin"], "budget": budget, "legs": legs,
+            "created_at": now_iso(), "event_id": meta.get("event_id", ""),
+            "sport": meta.get("sport", ""), "league": meta.get("league", ""),
+            "home": meta["home"], "away": meta.get("away", ""), "date": meta.get("date", ""),
+            "source": meta.get("source", ""), "margin": margin, "budget": budget, "legs": legs,
             "cancelled": False, "settled": None,
-            "log": [{"at": now_iso(), "msg": f"Operación creada con {budget} €."}],
+            "log": [{"at": now_iso(), "msg": msg}],
         }
         return self.view(self.store.add_operation(op))
+
+    def create_operation(self, opp_id, budget=None):
+        st = self.settings()
+        opp = self.store.opportunity(opp_id)
+        if not opp:
+            raise ServiceError("Esa oportunidad ya no existe. Vuelve a buscar.")
+        age = time.time() - parse_iso(opp["found_at"]).timestamp()
+        if age > st["opp_max_age_s"]:
+            raise ServiceError("Las cuotas de esta oportunidad son antiguas. Vuelve a buscar.")
+        budget = self._check_budget(budget)
+        return self._new_operation(opp, opp["legs"], budget, opp["margin"],
+                                   f"Operación creada con {budget} €.")
+
+    def create_external_operation(self, data):
+        """Surebet vista en otro escáner (p. ej. BetOven) y copiada a mano.
+
+        Admite cualquier mercado (goles, hándicap, córners...). Solo las patas de
+        ganador del partido (1/X/2) con fecha pueden ir automáticas en Betfair;
+        el resto se hacen a mano.
+        """
+        st = self.settings()
+        data = data or {}
+        home = str(data.get("home") or "").strip()[:80]
+        away = str(data.get("away") or "").strip()[:80]
+        if not home:
+            raise ServiceError("Escribe el evento (al menos el equipo local o el nombre del evento).")
+        date = str(data.get("date") or "").strip()
+        if date and not parse_iso(date):
+            raise ServiceError("Fecha no válida.")
+        raw_legs = data.get("legs") or []
+        if not 2 <= len(raw_legs) <= 4:
+            raise ServiceError("Una surebet necesita de 2 a 4 apuestas.")
+        legs, seen = [], set()
+        for i, l in enumerate(raw_legs):
+            kind = l.get("kind") or "other"
+            if kind not in ("home", "draw", "away", "other"):
+                raise ServiceError("Tipo de resultado no válido.")
+            outcome = kind if kind != "other" else f"x{i}"
+            if outcome in seen:
+                raise ServiceError("Hay dos apuestas al mismo resultado.")
+            seen.add(outcome)
+            bookmaker = str(l.get("bookmaker") or "").strip()[:60]
+            try:
+                odds = float(l.get("odds"))
+                commission = float(l.get("commission") if l.get("commission") not in (None, "")
+                                   else st["commissions"].get(bookmaker, 0.0))
+            except (TypeError, ValueError):
+                raise ServiceError("Cuotas y comisiones deben ser números.")
+            if not bookmaker or odds <= 1 or not 0 <= commission < 0.5:
+                raise ServiceError(f"Revisa la apuesta {i + 1}: casa, cuota > 1 y comisión.")
+            default_label = {"home": f"{home} (1)", "draw": "Empate (X)",
+                             "away": f"{away or 'Visitante'} (2)"}.get(kind, f"Apuesta {i + 1}")
+            legs.append({"outcome": outcome, "label": str(l.get("label") or "").strip()[:80] or default_label,
+                         "bookmaker": bookmaker, "odds": odds, "commission": commission,
+                         "url": "", "can_auto": kind != "other" and bool(away) and bool(date)})
+        inv = sum(1 / effective_odds(l["odds"], l["commission"]) for l in legs)
+        margin = round(1 / inv - 1, 6)
+        if margin <= 0:
+            raise ServiceError(f"Con esas cuotas no es surebet (margen {margin * 100:.2f} %). "
+                               "Revisa las cuotas o las comisiones.")
+        budget = self._check_budget(data.get("budget"))
+        source = str(data.get("source") or "Externa").strip()[:40]
+        meta = {"home": home, "away": away, "date": date, "source": source,
+                "sport": str(data.get("sport") or "")[:30], "league": str(data.get("league") or "")[:60]}
+        return self._new_operation(meta, legs, budget, margin,
+                                   f"Operación creada desde {source} con {budget} €.")
 
     def _load(self, op_id, leg_id=None):
         op = self.store.operation(int(op_id))
@@ -236,8 +308,9 @@ class Service:
         self._guard_editable(op)
         if mode not in ("auto", "manual") or leg["status"] != "pending":
             raise ServiceError("Solo se puede cambiar el modo de una apuesta pendiente.")
-        if mode == "auto" and leg["bookmaker"] != self.settings()["auto_bookmaker"]:
-            raise ServiceError("Solo la casa automática (Betfair) puede ir en automático.")
+        if mode == "auto" and (leg["bookmaker"] != self.settings()["auto_bookmaker"]
+                               or not leg.get("can_auto", True)):
+            raise ServiceError("Solo una apuesta 1X2 en la casa automática (Betfair) puede ir en automático.")
         leg.update(mode=mode, prepared=None)
         return self._save(op, f"{leg['label']}: modo {mode}.")
 
@@ -392,7 +465,8 @@ class Service:
         manual = [l for l in pending if l["mode"] == "manual"]
         if manual:
             l = manual[0]
-            return f"Apuesta {l['suggested_stake']} € a {l['label']} en {l['bookmaker']} y anótalo."
+            stake = f"{l['suggested_stake']:.2f}".replace(".", ",")
+            return f"Apuesta {stake} € a {l['label']} en {l['bookmaker']} y anótalo."
         if pending:
             return "Prepara y confirma la apuesta automática en Betfair."
         if op["has_unknown"]:
@@ -403,14 +477,14 @@ class Service:
     def export_csv(self):
         buf = io.StringIO()
         w = csv.writer(buf, delimiter=";")
-        w.writerow(["operacion", "creada", "evento", "liga", "fecha_evento", "estado",
+        w.writerow(["operacion", "origen", "creada", "evento", "liga", "fecha_evento", "estado",
                     "resultado_apuesta", "casa", "modo", "simulada", "cuota_plan",
                     "importe_plan", "cuota_real", "importe_real", "estado_apuesta", "ref",
                     "ganador", "beneficio_operacion"])
         for op in self.operations():
             s = op.get("settled") or {}
             for l in op["legs"]:
-                w.writerow([op["id"], op["created_at"], f"{op['home']} - {op['away']}",
+                w.writerow([op["id"], op.get("source") or "Surebet Scout", op["created_at"], f"{op['home']} - {op['away']}",
                             op["league"], op["date"], op["state"], l["label"], l["bookmaker"],
                             l["mode"], l.get("simulated"), l["planned_odds"], l["planned_stake"],
                             l["odds"], l["stake"], l["status"], l["ref"], s.get("winner", ""),

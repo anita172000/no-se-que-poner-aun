@@ -10,6 +10,7 @@ const fdate = (iso) => (iso ? new Date(iso).toLocaleString("es-ES", { weekday: "
 const ago = (iso) => { if (!iso) return ""; const s = Math.round((Date.now() - new Date(iso)) / 1000); return s < 60 ? `hace ${s} s` : `hace ${Math.round(s / 60)} min`; };
 const SPORTS_ES = { football: "Fútbol", tennis: "Tenis", basketball: "Baloncesto" };
 const STATE_BADGE = { abierta: "blue", "en curso": "amber", completa: "", expuesta: "red", liquidada: "grey", cancelada: "grey" };
+const evName = (o) => esc(o.home) + (o.away ? ` <span class="muted">vs</span> ${esc(o.away)}` : "");
 const effOdds = (o, c) => 1 + (o - 1) * (1 - (c || 0));
 const roundStep = (x, step) => (step <= 0.01 ? Math.round(x * 100) / 100 : Math.round(Math.round(x / step) * step * 100) / 100);
 
@@ -204,7 +205,7 @@ function renderOps() {
   const active = S.ops.filter((o) => !["liquidada", "cancelada"].includes(o.state));
   $("#op-list").innerHTML = active.length ? active.map((o) => `
     <div class="card oprow ${S.selOp === o.id ? "sel" : ""}" data-action="open-op" data-op="${o.id}">
-      <div><b>#${o.id} · ${esc(o.home)} vs ${esc(o.away)}</b><div class="muted">${esc(fdate(o.date))} · ${esc(o.league)}</div></div>
+      <div><b>#${o.id} · ${evName(o)}</b><div class="muted">${[fdate(o.date), o.league, o.source].filter(Boolean).map(esc).join(" · ")}</div></div>
       <div class="actions"><span class="muted">Apostado ${eur(o.staked)}</span><span class="badge ${STATE_BADGE[o.state]}">${esc(o.state)}</span></div>
     </div>`).join("")
     : (S.selOp ? "" : `<div class="empty card"><b>No hay operaciones en marcha</b>Ve a Oportunidades y pulsa «Operar» en una surebet.</div>`);
@@ -252,7 +253,7 @@ function stepBody(op, l) {
       <div class="muted">Si la cuota ha bajado, anota la real: los importes pendientes se recalculan. Si ya no compensa, pulsa «No pude».</div>
       ${manualForm(op, l, l.planned_odds, l.suggested_stake)}
       <div><button class="btn ghost small" data-action="skip" data-op="${op.id}" data-leg="${l.id}">No pude hacerla</button>
-      ${l.bookmaker === S.settings?.auto_bookmaker ? `<button class="btn ghost small" data-action="mode" data-mode="auto" data-op="${op.id}" data-leg="${l.id}">Hacerla automática</button>` : ""}</div>`;
+      ${l.bookmaker === S.settings?.auto_bookmaker && l.can_auto !== false ? `<button class="btn ghost small" data-action="mode" data-mode="auto" data-op="${op.id}" data-leg="${l.id}">Hacerla automática</button>` : ""}</div>`;
   }
   // automática pendiente
   const toManual = `<button class="btn ghost small" data-action="mode" data-mode="manual" data-op="${op.id}" data-leg="${l.id}">Hacerla manual</button>`;
@@ -293,8 +294,8 @@ function opDetail(op) {
   return `<div class="detail">
     <div class="card">
       <div class="detail-head">
-        <div><div class="muted">Operación #${op.id} · ${esc(op.league)} · ${esc(fdate(op.date))}</div>
-          <h2>${esc(op.home)} vs ${esc(op.away)}</h2></div>
+        <div><div class="muted">${[`Operación #${op.id}`, op.source && `desde ${op.source}`, op.league, fdate(op.date)].filter(Boolean).map(esc).join(" · ")}</div>
+          <h2>${evName(op)}</h2></div>
         <div class="actions"><span class="badge big ${STATE_BADGE[op.state]}">${esc(op.state)}</span><span class="badge big">+${pct(op.margin)}</span>
           <button class="btn ghost small" data-action="close-op">Cerrar</button></div>
       </div>
@@ -333,7 +334,7 @@ function renderHistory() {
     ${S.ops.length ? S.ops.map((o) => {
       const profit = o.settled ? signed(o.settled.profit) : o.state === "cancelada" ? "—" : `<span class="muted">previsto</span> ${signed(Math.min(...Object.values(o.projection)))}`;
       return `<tr class="click" data-action="open-op" data-op="${o.id}"><td>${o.id}</td><td>${esc(fdate(o.created_at))}</td>
-        <td>${esc(o.home)} vs ${esc(o.away)}<div class="muted">${esc(o.league)}</div></td>
+        <td>${evName(o)}<div class="muted">${[o.source, o.league].filter(Boolean).map(esc).join(" · ")}</div></td>
         <td><span class="badge ${STATE_BADGE[o.state]}">${esc(o.state)}</span></td><td class="r num">${eur(o.staked)}</td><td class="r">${profit}</td></tr>`;
     }).join("") : `<tr><td colspan="6" class="empty">Todavía no hay operaciones.</td></tr>`}</tbody>`;
 }
@@ -417,6 +418,79 @@ $("#settings").addEventListener("submit", (e) => {
     S.settings = await api("/api/settings", { method: "PUT", body });
     toast("Ajustes guardados");
     renderSettings(); renderStatus(); renderOpps();
+  }, f.querySelector('[type="submit"]'));
+});
+
+// ---------- surebet externa (BetOven u otro escáner) ----------
+const KINDS = [["home", "Local (1)"], ["draw", "Empate (X)"], ["away", "Visitante (2)"], ["other", "Otro mercado"]];
+function extLegRow(i, kind) {
+  return `<div class="extleg" data-leg-row>
+    <span class="n">${i + 1}</span>
+    <label class="field">Selección<input data-x="label" maxlength="80" placeholder="p. ej. Más de 2.5 goles"></label>
+    <label class="field">Tipo<select data-x="kind">${KINDS.map(([v, t]) => `<option value="${v}" ${v === kind ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+    <label class="field">Casa<input data-x="bookmaker" list="books-list" maxlength="60" placeholder="Codere ES"></label>
+    <label class="field">Cuota<input data-x="odds" type="number" step="0.01" min="1.01"></label>
+    <span class="stake" data-x-stake>—</span>
+    <button type="button" class="btn ghost small" data-x-del title="Quitar" aria-label="Quitar apuesta">✕</button>
+  </div>`;
+}
+function extReset() {
+  const f = $("#ext-form");
+  f.reset();
+  f.budget.value = S.settings ? S.settings.budget : 50;
+  $("#ext-legs").innerHTML = extLegRow(0, "other") + extLegRow(1, "other");
+  $("#books-list").innerHTML = (S.catalog?.bookmakers?.length ? S.catalog.bookmakers : S.settings?.bookmakers || []).map((b) => `<option value="${esc(b)}">`).join("");
+  extPreview();
+}
+function extRows() {
+  return [...document.querySelectorAll("#ext-legs [data-leg-row]")].map((r) => ({
+    row: r, label: r.querySelector('[data-x="label"]').value.trim(), kind: r.querySelector('[data-x="kind"]').value,
+    bookmaker: r.querySelector('[data-x="bookmaker"]').value.trim(), odds: parseFloat(r.querySelector('[data-x="odds"]').value),
+  }));
+}
+function extPreview() {
+  const rows = extRows();
+  rows.forEach((r, i) => (r.row.querySelector(".n").textContent = i + 1));
+  const budget = parseFloat($("#ext-form").budget.value);
+  const ok = rows.length >= 2 && rows.every((r) => r.odds > 1) && budget > 0;
+  const out = $("#ext-preview");
+  rows.forEach((r) => (r.row.querySelector("[data-x-stake]").textContent = "—"));
+  if (!ok) { out.textContent = "Rellena las cuotas para ver el reparto."; return; }
+  const auto = S.settings?.auto_bookmaker;
+  const legs = rows.map((r) => ({ odds: r.odds, commission: S.settings?.commissions?.[r.bookmaker] || 0, mode: r.bookmaker === auto && r.kind !== "other" ? "auto" : "manual" }));
+  const inv = legs.reduce((a, l) => a + 1 / effOdds(l.odds, l.commission), 0);
+  if (inv >= 1) { out.innerHTML = `<span class="neg">No es surebet: margen ${pct(1 / inv - 1)}</span>`; return; }
+  const p = planFor({ legs }, budget);
+  rows.forEach((r, i) => (r.row.querySelector("[data-x-stake]").textContent = eur(p.stakes[i])));
+  out.innerHTML = `Margen <b class="pos">+${pct(1 / inv - 1)}</b> · ganas mínimo ${signed(p.min)}`;
+}
+$("#ext").addEventListener("toggle", (e) => { if (e.target.open && !$("#ext-legs").children.length) extReset(); });
+$("#ext-form").addEventListener("input", extPreview);
+$("#ext-form").addEventListener("change", extPreview);
+$("#ext-add").addEventListener("click", () => {
+  const n = extRows().length;
+  if (n >= 4) return toast("Máximo 4 apuestas", true);
+  $("#ext-legs").insertAdjacentHTML("beforeend", extLegRow(n, "other"));
+  extPreview();
+});
+$("#ext-legs").addEventListener("click", (e) => {
+  if (!e.target.closest("[data-x-del]")) return;
+  if (extRows().length <= 2) return toast("Una surebet necesita al menos 2 apuestas", true);
+  e.target.closest("[data-leg-row]").remove();
+  extPreview();
+});
+$("#ext-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const body = {
+    source: f.source.value, home: f.home.value, away: f.away.value, sport: f.sport.value,
+    date: f.date.value ? new Date(f.date.value).toISOString() : "", budget: parseFloat(f.budget.value),
+    legs: extRows().map(({ label, kind, bookmaker, odds }) => ({ label, kind, bookmaker, odds })),
+  };
+  run(async () => {
+    const op = await api("/api/operations/external", { body });
+    $("#ext").open = false; extReset();
+    replaceOp(op); openOp(op.id); toast(`Operación #${op.id} creada desde ${op.source}`);
   }, f.querySelector('[type="submit"]'));
 });
 

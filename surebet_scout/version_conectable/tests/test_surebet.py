@@ -309,3 +309,47 @@ def test_web_api_and_local_only():
     assert client.get("/", headers={"Host": "evil.example"}).status_code == 400
     r = client.post("/api/operations", json={"opportunity_id": "nope"})
     assert r.status_code == 400 and "error" in r.json()
+
+
+# --- surebets externas (BetOven u otro escáner, copiadas a mano) -------------
+def test_external_surebet_any_market_is_manual():
+    svc = make_service()
+    op = svc.create_external_operation({
+        "source": "BetOven", "home": "Sevilla", "away": "Valencia", "budget": 40,
+        "legs": [{"label": "Más de 2.5", "kind": "other", "bookmaker": "Codere ES", "odds": 2.10},
+                 {"label": "Menos de 2.5", "kind": "other", "bookmaker": BF, "odds": 2.05}]})
+    assert op["source"] == "BetOven" and op["margin"] > 0
+    assert all(l["mode"] == "manual" for l in op["legs"])  # Betfair solo es auto en 1X2
+    assert len(op["projection"]) == 2 and min(op["projection"].values()) >= 0
+    with pytest.raises(ServiceError):
+        svc.set_mode(op["id"], 1, "auto")
+    for l in op["legs"]:
+        op = svc.register_manual(op["id"], l["id"], l["planned_odds"], l["suggested_stake"])
+    assert op["state"] == "completa"
+    op = svc.settle(op["id"], op["legs"][0]["outcome"])
+    assert op["settled"]["profit"] > 0
+    assert "BetOven" in svc.export_csv()
+
+
+def test_external_1x2_betfair_leg_can_be_auto():
+    svc = make_service()
+    op = svc.create_external_operation({
+        "home": "Real Betis", "away": "Villarreal", "date": "2030-01-01T20:00:00Z", "budget": 50,
+        "legs": [{"kind": "home", "bookmaker": "Winamax ES", "odds": 2.62},
+                 {"kind": "draw", "bookmaker": BF, "odds": 3.95},
+                 {"kind": "away", "bookmaker": "Codere ES", "odds": 2.95}]})
+    assert [l["mode"] for l in op["legs"]] == ["manual", "auto", "manual"]
+    assert op["legs"][1]["commission"] == 0.05  # toma la comisión de Ajustes
+
+
+def test_external_rejects_non_surebet_and_bad_input():
+    svc = make_service()
+    legs = [{"kind": "home", "bookmaker": "A", "odds": 1.9}, {"kind": "away", "bookmaker": "B", "odds": 1.9}]
+    with pytest.raises(ServiceError, match="no es surebet"):
+        svc.create_external_operation({"home": "X", "legs": legs})
+    with pytest.raises(ServiceError):
+        svc.create_external_operation({"home": "X", "legs": legs[:1]})
+    with pytest.raises(ServiceError, match="mismo resultado"):
+        svc.create_external_operation({"home": "X", "legs": [legs[0], legs[0]]})
+    with pytest.raises(ServiceError):
+        svc.create_external_operation({"home": "", "legs": legs})

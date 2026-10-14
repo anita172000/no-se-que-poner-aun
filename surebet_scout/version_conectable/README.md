@@ -38,6 +38,16 @@ el flujo sin riesgo.
 - **Resto de casas:** no tienen API de apuestas para particulares; esas apuestas son manuales.
   No se automatiza su web ni se usan sus contraseñas.
 
+## Surebets de BetOven u otros escáneres
+
+BetOven Scanner es una aplicación de escritorio cerrada. No ofrece API, exportación ni
+avisos que otro programa pueda leer, y sus condiciones prohíben la ingeniería inversa. Por eso
+la integración es manual: en **Oportunidades → Añadir una surebet de BetOven u otro escáner**
+copias el evento, las selecciones, las casas y las cuotas, ves al momento el margen y el
+reparto, y al crearla se gestiona como cualquier otra operación. Admite cualquier mercado
+(2 a 4 apuestas). Las patas 1/X/2 en Betfair con equipos y fecha pueden ir automáticas.
+Las demás son manuales.
+
 ## Salvaguardas
 
 - Simulación por defecto. Solo se apuesta de verdad con `SUREBET_LIVE=1` y las claves de Betfair.

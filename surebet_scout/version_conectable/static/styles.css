@@ -132,6 +132,22 @@ input[type=number] { width: 110px; }
 .empty { text-align: center; padding: 50px 20px; color: var(--muted); }
 .empty b { display: block; color: var(--text); font-size: 17px; margin-bottom: 4px; }
 
+/* Surebet externa */
+.ext { margin-bottom: 18px; }
+.ext summary { cursor: pointer; list-style: none; }
+.ext summary::-webkit-details-marker { display: none; }
+.ext[open] summary { margin-bottom: 14px; }
+.extform { display: grid; gap: 14px; }
+.extlegs { display: grid; gap: 10px; }
+.extleg { display: grid; grid-template-columns: 28px 1.4fr 1fr 1.2fr 90px 80px 32px; gap: 8px; align-items: end; padding: 10px; border-radius: 10px; background: var(--surface-2); }
+.extleg .n { font-weight: 700; color: var(--muted); padding-bottom: 9px; }
+.extleg input, .extleg select { width: 100%; }
+.extleg .stake { font-weight: 600; padding-bottom: 9px; white-space: nowrap; }
+@media (max-width: 760px) {
+  .extleg { grid-template-columns: 1fr 1fr; }
+  .extleg .n { grid-column: 1 / -1; padding: 0; }
+}
+
 /* Operaciones */
 .oplist { display: grid; gap: 10px; margin-bottom: 20px; }
 .oprow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; cursor: pointer; }
