@@ -1,25 +1,9 @@
-# Surebet Scout — dos versiones
+# Surebet Scout
 
-Este proyecto contiene dos variantes educativas:
+- `version_simulada/`: script de consola con cálculo teórico y órdenes ficticias.
+- `version_conectable/`: **web completa**. Detecta surebets en casas españolas (odds-api.io),
+  te guía en las apuestas manuales y lanza la de Betfair Exchange por su API oficial,
+  con simulación por defecto y salvaguardas. Ver su README.
 
-- `version_simulada/`: análisis de surebets con órdenes y saldo virtual.
-- `version_integracion_preparada/`: misma lógica de análisis con una interfaz abstracta para un proveedor autorizado, pero sin conexión real ni ejecución de apuestas.
-
-## Requisitos
-Python 3.10+
-
-## Ejecutar la versión simulada
-```bash
-cd version_simulada
-python app.py
-```
-
-## Ejecutar la versión preparada
-```bash
-cd version_integracion_preparada
-python app.py
-```
-
-Ambas versiones son de consola y usan datos de ejemplo. No inician sesión en casas de apuestas, no se conectan a operadores y no mueven dinero.
-
-- `version_conectable/`: motor con ejecución real opcional vía API oficial, con salvaguardas (ver su README).
+Una surebet detectada no garantiza beneficio: las cuotas cambian, hay límites, rechazos y
+las casas limitan cuentas. Juega solo lo que puedas permitirte perder (jugarbien.es).

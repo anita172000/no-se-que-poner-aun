@@ -1,26 +1,38 @@
-"""Demo: usa proveedores simulados. Cambia SimulatedProvider por tus adaptadores oficiales."""
+"""Arranca la web de Surebet Scout en http://127.0.0.1:8050 y abre el navegador."""
+import os
 import sys
-from core import Quote, find_surebet
-from executor import Executor
-from providers import SimulatedProvider
+import threading
+import webbrowser
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+
+
+def load_env(path):
+    """Lee KEY=VALOR de un .env local sin pisar variables ya definidas."""
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
 
 def main():
-    ev = "Evento demo"
-    a = SimulatedProvider("op_a", [Quote("op_a", ev, "A", 2.15), Quote("op_a", ev, "B", 1.80)])
-    b = SimulatedProvider("op_b", [Quote("op_b", ev, "A", 1.85), Quote("op_b", ev, "B", 2.20)])
-    provs = [a, b]
-    best = {}
-    for p in provs:
-        for q in p.get_quotes(ev):
-            if q.selection not in best or q.odds > best[q.selection].odds:
-                best[q.selection] = q
-    opp = find_surebet(list(best.values()), budget=40, commission=0.0)
-    if not opp:
-        return print("Sin oportunidad.")
-    print(f"Margen {opp.margin:.2%}, beneficio teórico {opp.profit}")
-    print(Executor(provs).execute(opp) if "--live" not in sys.argv
-          else Executor(provs, live=True).execute(opp))
+    load_env(HERE / ".env")
+    import uvicorn
+    from web import create_app
+
+    port = int(os.environ.get("SUREBET_PORT", "8050"))
+    url = f"http://127.0.0.1:{port}"
+    print(f"Surebet Scout en {url}  (Ctrl+C para salir)")
+    if "--no-browser" not in sys.argv:
+        threading.Timer(1.5, webbrowser.open, args=(url,)).start()
+    # Solo 127.0.0.1: la web no es accesible desde otros equipos.
+    uvicorn.run(create_app(), host="127.0.0.1", port=port, log_level="warning")
 
 
 if __name__ == "__main__":

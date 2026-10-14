@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Surebet Scout</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230f9d6b'/><path d='M9 17l5 5 9-12' stroke='white' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M9 17l5 5 9-12"/></svg></span>
+    <div><strong>Surebet Scout</strong><small>Detector y gestor de surebets</small></div>
+  </div>
+  <div class="pills" id="pills"></div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="inicio" class="active">Inicio</button>
+  <button data-tab="oportunidades">Oportunidades <span class="count" id="c-opps"></span></button>
+  <button data-tab="operaciones">Operaciones <span class="count" id="c-ops"></span></button>
+  <button data-tab="historial">Historial</button>
+  <button data-tab="ajustes">Ajustes</button>
+  <button data-tab="guia">Guía</button>
+</nav>
+
+<div id="alerts"></div>
+
+<main>
+  <!-- INICIO -->
+  <section id="tab-inicio" class="tab active">
+    <div class="kpis" id="kpis"></div>
+    <div class="grid2">
+      <div class="card">
+        <h2>Configuración</h2>
+        <ol class="checklist" id="checklist"></ol>
+      </div>
+      <div class="card">
+        <h2>Cómo funciona</h2>
+        <ol class="howto">
+          <li><b>Busca.</b> El programa compara las cuotas de tus casas y encuentra combinaciones con beneficio en cualquier resultado.</li>
+          <li><b>Apuestas manuales.</b> Te dice cuánto apostar en cada casa sin API. Apuestas tú y anotas la cuota real conseguida.</li>
+          <li><b>Betfair automático.</b> Con lo que hayas conseguido, recalcula y lanza la última apuesta en Betfair tras tu confirmación.</li>
+          <li><b>Liquida.</b> Cuando acaba el evento, marcas el resultado y queda tu beneficio en el historial.</li>
+        </ol>
+        <button class="btn primary" data-goto="oportunidades" data-scan="1">Buscar surebets ahora</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPORTUNIDADES -->
+  <section id="tab-oportunidades" class="tab">
+    <div class="toolbar">
+      <button class="btn primary" id="btn-scan">Buscar ahora</button>
+      <label class="switch"><input type="checkbox" id="auto-scan"> Buscar cada 60 s</label>
+      <span class="muted" id="scan-info"></span>
+    </div>
+    <div class="opps" id="opps"></div>
+  </section>
+
+  <!-- OPERACIONES -->
+  <section id="tab-operaciones" class="tab">
+    <div id="op-list" class="oplist"></div>
+    <div id="op-detail"></div>
+  </section>
+
+  <!-- HISTORIAL -->
+  <section id="tab-historial" class="tab">
+    <div class="toolbar">
+      <a class="btn" href="/api/export.csv" download>Exportar CSV</a>
+      <span class="muted">Todas las operaciones, con cada apuesta (cuota y importe planificados y reales).</span>
+    </div>
+    <div class="card flush"><div class="tablewrap"><table class="table" id="hist"></table></div></div>
+  </section>
+
+  <!-- AJUSTES -->
+  <section id="tab-ajustes" class="tab">
+    <form id="settings" class="settings"></form>
+  </section>
+
+  <!-- GUIA -->
+  <section id="tab-guia" class="tab">
+    <div class="guide">
+      <div class="card">
+        <h2>1 · Clave de cuotas (odds-api.io)</h2>
+        <p>Es el servicio que lee las cuotas de las casas españolas: Bwin ES, Codere ES, Luckia ES, Retabet ES, Winamax ES, 888Sport ES, PokerStars ES, Betway ES, Betfair y más. Sin clave, la web funciona con <b>datos de ejemplo</b>.</p>
+        <ol>
+          <li>Entra en <b>odds-api.io</b> y crea una cuenta.</li>
+          <li>Elige plan: se paga según el número de casas (p. ej. 2, 5, 10 o 15). Con más casas encontrarás más surebets.</li>
+          <li>En su panel, selecciona las mismas casas que marques en <b>Ajustes</b>.</li>
+          <li>Copia tu clave en el archivo <code>.env</code>: <code>ODDS_API_KEY=tu_clave</code></li>
+        </ol>
+      </div>
+      <div class="card">
+        <h2>2 · Betfair (la apuesta automática)</h2>
+        <ol>
+          <li>Abre cuenta en <b>betfair.es</b>, verifica tu identidad y deposita.</li>
+          <li>En el portal de desarrolladores de Betfair (<b>developer.betfair.com</b>), crea tu <b>Application Key</b>. Te dan una de prueba (con retraso) y una real, que hay que activar.</li>
+          <li>Rellena en <code>.env</code>:<br><code>BETFAIR_APP_KEY=…</code><br><code>BETFAIR_USERNAME=…</code><br><code>BETFAIR_PASSWORD=…</code></li>
+          <li>Tus datos se quedan en tu ordenador: solo se envían a Betfair por su API oficial y nunca se guardan en la base de datos.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h2>3 · Activar el modo real</h2>
+        <p>Por defecto todo es <b>simulación</b>: las apuestas de Betfair no se envían. Para enviarlas de verdad añade <code>SUREBET_LIVE=1</code> en <code>.env</code> y reinicia el programa. Después pulsa <b>Comprobar Betfair</b> en Inicio para ver tu saldo.</p>
+        <p>Empieza con importes mínimos (Betfair suele pedir 2 € por apuesta) y límites bajos en Ajustes.</p>
+      </div>
+      <div class="card">
+        <h2>4 · Las casas sin API</h2>
+        <p>Bwin, Codere, Luckia y el resto <b>no permiten apostar por programa</b>, solo desde su web o app. Por eso esas apuestas las haces tú: la web te dice casa, resultado, cuota e importe, y tú anotas lo que conseguiste. Automatizar su web con tu contraseña está prohibido en sus condiciones y acaba en cierre de cuenta.</p>
+      </div>
+      <div class="card warn">
+        <h2>Riesgos reales</h2>
+        <ul>
+          <li><b>Las cuotas cambian.</b> Si al ir a apostar la cuota ha bajado, anota la real: el programa recalcula. Si ya no compensa, márcala como "No pude".</li>
+          <li><b>Riesgo abierto.</b> Si haces una apuesta y la otra falla, la operación queda <b>expuesta</b>: puedes perder lo apostado. Cúbrela en otra casa cuanto antes.</li>
+          <li><b>Limitación de cuentas.</b> Las casas tradicionales suelen limitar a quien hace surebets. Es habitual y no tiene solución legítima.</li>
+          <li><b>Errores de emparejamiento.</b> Antes de confirmar en Betfair, revisa que el partido y la selección que muestra son los correctos.</li>
+          <li><b>Juego responsable.</b> Pon límites que puedas permitirte perder. Ayuda: jugarbien.es.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
