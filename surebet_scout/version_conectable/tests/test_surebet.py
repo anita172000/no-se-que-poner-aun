@@ -72,7 +72,7 @@ def test_normalize_odds_api_io():
                                       {"name": "Totals", "odds": [{"over": "1.9"}]}],
                           "Raro": [{"name": "ML", "odds": [{"home": "N/A"}]}]}}
     ev = normalize_odds_api_io(raw)
-    assert ev["prices"] == {"Bwin ES": {"home": 2.1, "draw": 3.4, "away": 3.2}}
+    assert ev["markets"]["ML"]["prices"] == {"Bwin ES": {"home": 2.1, "draw": 3.4, "away": 3.2}}
     assert ev["id"] == "7" and ev["league"] == "LaLiga"
 
 
@@ -86,7 +86,7 @@ def test_odds_api_feed_batches_and_reports_errors():
                                   headers={"x-ratelimit-remaining": "99"})
         if req.url.path.endswith("/odds/multi"):
             ids = req.url.params["eventIds"].split(",")
-            assert req.url.params["markets"] == "ML"
+            assert "ML" in req.url.params["markets"].split(",")
             return httpx.Response(200, json=[{"id": i, "bookmakers": {}} for i in ids])
         return httpx.Response(404)
 
@@ -192,7 +192,7 @@ def make_service(exchange_factory=None):
 
 
 def betis_op(svc, budget=50):
-    opp = next(o for o in svc.scan() if o["home"] == "Real Betis")
+    opp = next(o for o in svc.scan() if o["home"] == "Real Betis" and o["market"] == "ML")
     return svc.create_operation(opp["id"], budget)
 
 
@@ -242,7 +242,7 @@ def test_skip_after_placing_marks_exposed_and_blocks_cancel():
 
 def test_limits():
     svc = make_service()
-    opp = next(o for o in svc.scan() if o["home"] == "Real Betis")
+    opp = next(o for o in svc.scan() if o["home"] == "Real Betis" and o["market"] == "ML")
     with pytest.raises(ServiceError, match="máximo por operación"):
         svc.create_operation(opp["id"], 1000)
     svc.update_settings({"max_daily": 60, "budget": 50, "max_budget_op": 60})
@@ -373,3 +373,50 @@ def test_bookmaker_stats_track_profit_per_house():
     assert codere["profit"] == pytest.approx(codere["staked"] * 1.2, abs=0.01)
     assert bwin["profit"] == -bwin["staked"]
     assert codere["warn"] and not bwin["warn"] and codere["open_stake"] == 0
+
+
+# --- mercados de goles y hándicap --------------------------------------------
+def test_totals_and_spread_surebets_are_detected_and_manual():
+    from core import find_opportunities, scan
+    ev = {"id": "9", "home": "Sevilla", "away": "Valencia", "date": "2030-01-01T20:00:00Z",
+          "markets": {
+              "ML": {"type": "ML", "line": None, "prices": {
+                  "A": {"home": 2.0, "draw": 3.2, "away": 3.5}, BF: {"home": 2.0, "draw": 3.3, "away": 3.6}}},
+              "Totals:2.5": {"type": "Totals", "line": 2.5, "prices": {
+                  "A": {"over": 2.15, "under": 1.70}, "B": {"over": 1.80, "under": 2.05}}},
+              "Spread:-0.5": {"type": "Spread", "line": -0.5, "prices": {
+                  "A": {"home": 2.0, "away": 1.8}, "B": {"home": 1.9, "away": 2.1}}}}}
+    opps = find_opportunities(ev, 100)
+    keys = {o["market"] for o in opps}
+    assert keys == {"Totals:2.5", "Spread:-0.5"}
+    tot = next(o for o in opps if o["market"] == "Totals:2.5")
+    assert [l["label"] for l in tot["legs"]] == ["Más de 2,5", "Menos de 2,5"]
+    assert tot["market_label"] == "Más/Menos 2,5" and tot["id"] == "9|Totals:2.5"
+    sp = next(o for o in opps if o["market"] == "Spread:-0.5")
+    assert [l["label"] for l in sp["legs"]] == ["Sevilla (-0,5)", "Valencia (+0,5)"]
+    assert not any(l["can_auto"] for o in opps for l in o["legs"])
+    # ordenadas de mayor a menor margen y filtrables por mercado
+    ranked = scan([ev], 100)
+    assert [o["margin"] for o in ranked] == sorted((o["margin"] for o in ranked), reverse=True)
+    assert scan([ev], 100, markets=["ML"]) == []
+
+
+def test_normalize_totals_and_spread_lines():
+    raw = {"id": 1, "home": "H", "away": "A", "bookmakers": {"Bwin ES": [
+        {"name": "Totals", "updatedAt": "u", "odds": [{"hdp": 2.5, "over": "1.9", "under": "1.9"},
+                                                       {"hdp": 3.5, "over": "3.1", "under": "1.35"}]},
+        {"name": "Spread", "odds": [{"hdp": -0.5, "home": "2.0", "away": "1.8"}]}]}}
+    ev = normalize_odds_api_io(raw)
+    assert set(ev["markets"]) == {"Totals:2.5", "Totals:3.5", "Spread:-0.5"}
+    assert ev["markets"]["Totals:3.5"]["prices"]["Bwin ES"] == {"over": 3.1, "under": 1.35}
+    assert ev["markets"]["Spread:-0.5"]["line"] == -0.5
+
+
+def test_service_totals_operation_is_manual_even_with_betfair():
+    svc = make_service()
+    opps = svc.scan()
+    assert [o["margin"] for o in opps] == sorted((o["margin"] for o in opps), reverse=True)
+    totals = [o for o in opps if o["market_type"] != "ML"]
+    assert totals
+    op = svc.create_operation(totals[0]["id"], 40)
+    assert all(l["mode"] == "manual" for l in op["legs"]) and op["market_label"]

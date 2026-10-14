@@ -168,6 +168,7 @@ function oppCard(o) {
   const sport = SPORTS_ES[o.sport] || o.sport;
   return `<article class="card opp" data-opp="${esc(o.id)}">
     <div class="meta"><span>${esc(sport)} · ${esc(o.league)}</span><span>${esc(fdate(o.date))}</span></div>
+    <div><span class="chip market">${esc(o.market_label || "Ganador del partido")}</span></div>
     <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
       <h3>${esc(o.home)} <span class="muted">vs</span> ${esc(o.away)}</h3>
       <span class="badge big" title="Margen teórico tras comisiones">+${pct(o.margin)}</span>
@@ -186,10 +187,27 @@ function oppCard(o) {
     </footer>
   </article>`;
 }
+// Orden y filtros de la lista (se recuerdan en este navegador).
+const VIEW = (() => { try { return JSON.parse(localStorage.getItem("oppView")) || {}; } catch { return {}; } })();
+function saveView() { try { localStorage.setItem("oppView", JSON.stringify(VIEW)); } catch {} }
+function visibleOpps() {
+  const minPct = VIEW.min || 0, market = VIEW.market || "", sort = VIEW.sort || "margin";
+  const budget = S.settings ? S.settings.budget : 50;
+  const list = S.opps.filter((o) => o.margin * 100 >= minPct && (!market || (o.market_type || "ML") === market));
+  const key = {
+    margin: (o) => -o.margin,
+    profit: (o) => -planFor(o, budget).min,
+    date: (o) => new Date(o.date).getTime() || 0,
+  }[sort];
+  return list.map((o) => [key(o), o]).sort((a, b) => a[0] - b[0]).map((x) => x[1]);
+}
 function renderOpps() {
   const ls = S.lastScan || {};
-  $("#scan-info").textContent = ls.at ? `Última búsqueda ${ago(ls.at)} · ${ls.events} eventos analizados` : "";
-  $("#opps").innerHTML = S.opps.length ? S.opps.map(oppCard).join("")
+  const list = visibleOpps();
+  const hidden = S.opps.length - list.length;
+  $("#scan-info").textContent = (ls.at ? `Última búsqueda ${ago(ls.at)} · ${ls.events} eventos analizados` : "") +
+    (hidden > 0 ? ` · ${hidden} ocultas por los filtros` : "");
+  $("#opps").innerHTML = list.length ? list.map(oppCard).join("")
     : `<div class="empty card" style="grid-column:1/-1"><b>${ls.at ? "No hay surebets ahora mismo" : "Pulsa «Buscar ahora»"}</b>
        ${ls.at ? "Es normal: aparecen y desaparecen en minutos. Activa la búsqueda automática o añade más casas en Ajustes." : "Se compararán las cuotas de tus casas elegidas."}</div>`;
 }
@@ -205,6 +223,13 @@ $("#opps").addEventListener("input", (e) => {
   card.querySelector("[data-care]").innerHTML = careHtml(careWarnings(o.legs, p.stakes, o.margin));
 });
 $("#btn-scan").addEventListener("click", (e) => doScan(e.currentTarget));
+$("#opp-sort").value = VIEW.sort || "margin";
+$("#opp-min").value = VIEW.min || 0;
+$("#opp-market").value = VIEW.market || "";
+["#opp-sort", "#opp-min", "#opp-market"].forEach((id) => $(id).addEventListener("change", () => {
+  VIEW.sort = $("#opp-sort").value; VIEW.min = parseFloat($("#opp-min").value) || 0; VIEW.market = $("#opp-market").value;
+  saveView(); renderOpps();
+}));
 let autoTimer = null;
 $("#auto-scan").addEventListener("change", (e) => {
   clearInterval(autoTimer);
@@ -312,7 +337,7 @@ function opDetail(op) {
   return `<div class="detail">
     <div class="card">
       <div class="detail-head">
-        <div><div class="muted">${[`Operación #${op.id}`, op.source && `desde ${op.source}`, op.league, fdate(op.date)].filter(Boolean).map(esc).join(" · ")}</div>
+        <div><div class="muted">${[`Operación #${op.id}`, op.source && `desde ${op.source}`, op.market_label, op.league, fdate(op.date)].filter(Boolean).map(esc).join(" · ")}</div>
           <h2>${evName(op)}</h2></div>
         <div class="actions"><span class="badge big ${STATE_BADGE[op.state]}">${esc(op.state)}</span><span class="badge big">+${pct(op.margin)}</span>
           <button class="btn ghost small" data-action="close-op">Cerrar</button></div>
@@ -398,7 +423,10 @@ function renderSettings() {
     </fieldset>
     <fieldset><legend>Deportes</legend>
       <div class="checks">${sports.map((s) => `<label><input type="checkbox" name="sport" value="${esc(s.slug)}" ${st.sports.includes(s.slug) ? "checked" : ""}> ${esc(SPORTS_ES[s.slug] || s.name)}</label>`).join("")}</div>
-      <p class="muted">Solo se usa el mercado ganador del partido (1X2 o ganador a 2 resultados).</p>
+    </fieldset>
+    <fieldset><legend>Mercados</legend>
+      <div class="checks">${[["ML", "Ganador del partido (1X2)"], ["Totals", "Goles / puntos más-menos"], ["Spread", "Hándicap"]].map(([v, t]) => `<label><input type="checkbox" name="market" value="${v}" ${(st.markets || ["ML"]).includes(v) ? "checked" : ""}> ${t}</label>`).join("")}</div>
+      <p class="muted">Más mercados = más surebets. Betfair solo puede ir automático en «Ganador del partido»; en goles y hándicap todas las apuestas son manuales.</p>
     </fieldset>
     <fieldset><legend>Búsqueda</legend><div class="fields">
       <label>Horas hacia delante<input type="number" name="hours_ahead" min="1" max="336" value="${st.hours_ahead}"></label>
@@ -445,6 +473,7 @@ $("#settings").addEventListener("submit", (e) => {
   const body = {
     bookmakers: [...f.querySelectorAll('input[name="bk"]:checked')].map((i) => i.value),
     sports: [...f.querySelectorAll('input[name="sport"]:checked')].map((i) => i.value),
+    markets: [...f.querySelectorAll('input[name="market"]:checked')].map((i) => i.value),
     auto_bookmaker: f.auto_bookmaker.value, commissions,
     hours_ahead: f.hours_ahead.value, max_events: f.max_events.value, max_odds_age_s: f.max_odds_age_s.value,
     min_margin: (parseFloat(f.min_margin_pct.value) || 0) / 100,

@@ -1,9 +1,15 @@
 """Detector puro de surebets: sin red, sin estado, sin órdenes.
 
 Un evento normalizado tiene esta forma (la producen los feeds):
-    {"id", "sport", "league", "home", "away", "date",
-     "urls": {casa: url}, "prices": {casa: {"home": 2.1, "draw": 3.4, "away": 3.2}},
+    {"id", "sport", "league", "home", "away", "date", "urls": {casa: url},
+     "markets": {
+        "ML":          {"type": "ML", "line": None, "prices": {casa: {"home", "draw", "away"}}},
+        "Totals:2.5":  {"type": "Totals", "line": 2.5, "prices": {casa: {"over", "under"}}},
+        "Spread:-0.5": {"type": "Spread", "line": -0.5, "prices": {casa: {"home", "away"}}},
+     },
      "updated": {casa: iso}}
+Por compatibilidad, un evento con solo "prices" se trata como mercado ML (1X2).
+En Spread, "line" es el hándicap del local; el visitante tiene el contrario.
 """
 import itertools
 import math
@@ -11,6 +17,7 @@ from datetime import datetime, timezone
 
 OUTCOMES = ("home", "draw", "away")
 LABELS = {"home": "Local (1)", "draw": "Empate (X)", "away": "Visitante (2)"}
+MARKET_OUTCOMES = {"ML": OUTCOMES, "Totals": ("over", "under"), "Spread": ("home", "away")}
 
 
 def effective_odds(odds: float, commission: float = 0.0) -> float:
@@ -38,24 +45,64 @@ def parse_iso(value):
     return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
 
-def best_legs(event, bookmakers=None, commissions=None, max_age_s=None, now=None):
-    """Mejor cuota efectiva por resultado entre las casas permitidas.
+def _fmt_line(x, signed=False):
+    txt = f"{x:+g}" if signed else f"{x:g}"
+    return txt.replace(".", ",")
+
+
+def market_label(mtype, line=None):
+    if mtype == "Totals":
+        return f"Más/Menos {_fmt_line(line)}"
+    if mtype == "Spread":
+        return f"Hándicap {_fmt_line(line, True)}"
+    return "Ganador del partido"
+
+
+def outcome_label(outcome, event, mtype="ML", line=None):
+    home, away = event.get("home") or "Local", event.get("away") or "Visitante"
+    if mtype == "Totals":
+        return f"{'Más' if outcome == 'over' else 'Menos'} de {_fmt_line(line)}"
+    if mtype == "Spread":
+        return f"{home} ({_fmt_line(line, True)})" if outcome == "home" \
+            else f"{away} ({_fmt_line(-line, True)})"
+    if outcome == "home":
+        return f"{home} (1)"
+    if outcome == "away":
+        return f"{away} (2)"
+    return LABELS[outcome]
+
+
+def event_markets(event):
+    if event.get("markets"):
+        return event["markets"]
+    return {"ML": {"type": "ML", "line": None, "prices": event.get("prices", {})}}
+
+
+def best_legs(event, bookmakers=None, commissions=None, max_age_s=None, now=None,
+              market_key="ML"):
+    """Mejor cuota efectiva por resultado de un mercado entre las casas permitidas.
 
     Solo se comparan casas que cotizan TODOS los resultados del mercado, para no
     mezclar un 1X2 con un mercado de dos resultados.
     """
     commissions = commissions or {}
     now = now or datetime.now(timezone.utc)
+    market = event_markets(event).get(market_key)
+    if not market:
+        return None
+    mtype, line = market.get("type", "ML"), market.get("line")
+    updated = {**event.get("updated", {}), **market.get("updated", {})}
     allowed = {}
-    for bk, prices in event.get("prices", {}).items():
+    for bk, prices in market.get("prices", {}).items():
         if bookmakers is not None and bk not in bookmakers:
             continue
         if max_age_s:
-            upd = parse_iso(event.get("updated", {}).get(bk))
+            upd = parse_iso(updated.get(bk))
             if upd and (now - upd).total_seconds() > max_age_s:
                 continue
         allowed[bk] = prices
-    outcomes = [o for o in OUTCOMES if any(o in p for p in allowed.values())]
+    outcomes = [o for o in MARKET_OUTCOMES.get(mtype, OUTCOMES)
+                if any(o in p for p in allowed.values())]
     if len(outcomes) < 2:
         return None
     best = {}
@@ -70,25 +117,19 @@ def best_legs(event, bookmakers=None, commissions=None, max_age_s=None, now=None
             if o not in best or eff > best[o]["eff"]:
                 best[o] = {
                     "outcome": o,
-                    "label": outcome_label(o, event),
+                    "label": outcome_label(o, event, mtype, line),
                     "bookmaker": bk,
                     "odds": odds,
                     "commission": commissions.get(bk, 0.0),
                     "eff": eff,
                     "url": event.get("urls", {}).get(bk, ""),
-                    "updated": event.get("updated", {}).get(bk, ""),
+                    "updated": updated.get(bk, ""),
+                    # Solo el 1X2 se puede emparejar con el mercado Match Odds de Betfair.
+                    "can_auto": mtype == "ML",
                 }
     if len(best) != len(outcomes):
         return None
     return [best[o] for o in outcomes]
-
-
-def outcome_label(outcome, event):
-    if outcome == "home":
-        return f"{event.get('home', 'Local')} (1)"
-    if outcome == "away":
-        return f"{event.get('away', 'Visitante')} (2)"
-    return LABELS[outcome]
 
 
 def plan_stakes(legs, budget: float, rounding: float = 0.01):
@@ -129,37 +170,58 @@ def profit_by_outcome(legs, stakes):
     return {leg["outcome"]: round(s * leg["eff"] - total, 2) for leg, s in zip(legs, stakes)}
 
 
-def find_opportunity(event, budget, bookmakers=None, commissions=None, rounding=0.01,
-                     max_age_s=None, now=None, exact_bookmakers=()):
-    """exact_bookmakers: casas donde se apuesta al céntimo (p. ej. el exchange)."""
-    legs = best_legs(event, bookmakers, commissions, max_age_s, now)
-    if not legs:
-        return None
-    for leg in legs:
-        leg["step"] = 0.01 if leg["bookmaker"] in exact_bookmakers else rounding
-    inv = sum(1 / leg["eff"] for leg in legs)
-    if inv >= 1:
-        return None
-    stakes, pl = plan_stakes(legs, budget, rounding)
-    for leg, s in zip(legs, stakes):
-        leg["stake"] = s
-    return {
-        "id": str(event["id"]),
-        "event_id": str(event["id"]),
-        "sport": event.get("sport", ""),
-        "league": event.get("league", ""),
-        "home": event.get("home", ""),
-        "away": event.get("away", ""),
-        "date": event.get("date", ""),
-        "margin": round(1 / inv - 1, 6),
-        "budget": budget,
-        "legs": legs,
-        "profit": pl,
-        "min_profit": min(pl.values()),
-    }
+def find_opportunities(event, budget, bookmakers=None, commissions=None, rounding=0.01,
+                       max_age_s=None, now=None, exact_bookmakers=(), markets=None):
+    """Todas las surebets de un evento (una por mercado/línea).
+
+    exact_bookmakers: casas donde se apuesta al céntimo (p. ej. el exchange).
+    markets: tipos de mercado a mirar (ML, Totals, Spread); None = todos.
+    """
+    out = []
+    for key, market in event_markets(event).items():
+        mtype = market.get("type", "ML")
+        if markets is not None and mtype not in markets:
+            continue
+        legs = best_legs(event, bookmakers, commissions, max_age_s, now, key)
+        if not legs:
+            continue
+        inv = sum(1 / leg["eff"] for leg in legs)
+        if inv >= 1:
+            continue
+        for leg in legs:
+            leg["step"] = 0.01 if leg["bookmaker"] in exact_bookmakers else rounding
+        stakes, pl = plan_stakes(legs, budget, rounding)
+        for leg, s in zip(legs, stakes):
+            leg["stake"] = s
+        eid = str(event["id"])
+        out.append({
+            "id": eid if key == "ML" else f"{eid}|{key}",
+            "event_id": eid,
+            "market": key,
+            "market_type": mtype,
+            "market_label": market_label(mtype, market.get("line")),
+            "sport": event.get("sport", ""),
+            "league": event.get("league", ""),
+            "home": event.get("home", ""),
+            "away": event.get("away", ""),
+            "date": event.get("date", ""),
+            "margin": round(1 / inv - 1, 6),
+            "budget": budget,
+            "legs": legs,
+            "profit": pl,
+            "min_profit": min(pl.values()),
+        })
+    return out
+
+
+def find_opportunity(event, budget, **kw):
+    """La mejor surebet del evento (o None)."""
+    opps = find_opportunities(event, budget, **kw)
+    return max(opps, key=lambda o: o["margin"]) if opps else None
 
 
 def scan(events, budget, min_margin=0.0, **kw):
-    opps = [o for o in (find_opportunity(e, budget, **kw) for e in events)
-            if o and o["margin"] >= min_margin]
+    """Todas las surebets de todos los eventos, de mayor a menor margen."""
+    opps = [o for e in events for o in find_opportunities(e, budget, **kw)
+            if o["margin"] >= min_margin]
     return sorted(opps, key=lambda o: -o["margin"])

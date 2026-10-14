@@ -98,6 +98,8 @@ input, select { font: inherit; color: var(--text); background: var(--surface); b
 input:focus, select:focus, .btn:focus-visible, .tabs button:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
 input[type=number] { width: 110px; }
 .toolbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+.field.inline { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; }
+.chip.market { background: var(--primary-soft); color: var(--primary); }
 .switch { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
 
 /* Alertas */

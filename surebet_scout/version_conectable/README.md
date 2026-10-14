@@ -21,7 +21,7 @@ el flujo sin riesgo.
 | Pestaña | Para qué |
 |---|---|
 | **Inicio** | Estado (simulación/real, datos, saldo Betfair), gasto del día, beneficio y lista de configuración. |
-| **Oportunidades** | Busca surebets (a mano o cada 60 s). Muestra casa, cuota e importe por resultado y el beneficio mínimo según tu presupuesto. |
+| **Oportunidades** | Busca surebets (a mano o cada 60 s) en ganador 1X2, goles más/menos y hándicap, sin tope de porcentaje. Ordena por % de beneficio, € de beneficio o fecha, con filtro de % mínimo y de mercado. |
 | **Operaciones** | Guía paso a paso: primero las apuestas manuales (anotas la cuota real), después Betfair automático con la cuota en vivo. Muestra el beneficio por resultado y el riesgo abierto. |
 | **Historial** | Todas las operaciones, liquidación y exportación a CSV. |
 | **Ajustes** | Tus casas, comisiones, deportes, límites de dinero y redondeo de importes. |

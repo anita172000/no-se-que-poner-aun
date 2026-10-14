@@ -23,10 +23,11 @@ DEFAULT_SETTINGS = {
     "auto_bookmaker": "Betfair Exchange",
     "commissions": {"Betfair Exchange": 0.05, "Betfair ES": 0.0},
     "sports": ["football"],
+    "markets": ["ML", "Totals", "Spread"],  # ganador, goles más/menos, hándicap
     "hours_ahead": 48,
     "max_events": 50,
     "budget": 50.0,
-    "min_margin": 0.005,
+    "min_margin": 0.0,
     "max_budget_op": 100.0,
     "max_daily": 300.0,
     "rounding": 0.5,
@@ -71,6 +72,8 @@ class Service:
             raise ServiceError("Máximo 30 casas por búsqueda.")
         if not new["sports"]:
             raise ServiceError("Elige al menos un deporte.")
+        if not new["markets"] or any(m not in ("ML", "Totals", "Spread") for m in new["markets"]):
+            raise ServiceError("Elige al menos un mercado válido.")
         if any(not 0 <= c < 0.5 for c in new["commissions"].values()):
             raise ServiceError("Las comisiones van de 0 a 0.5 (p. ej. 0.05 = 5 %).")
         if new["budget"] <= 0 or new["max_budget_op"] <= 0 or new["max_daily"] <= 0:
@@ -120,13 +123,14 @@ class Service:
         st = self.settings()
         try:
             events = self.feed.fetch(st["sports"], st["bookmakers"], st["hours_ahead"],
-                                     st["max_events"])
+                                     st["max_events"], st["markets"])
         except FeedError as exc:
             self.last_scan = {"at": now_iso(), "events": 0, "error": str(exc)}
             raise ServiceError(str(exc))
         opps = scan(events, st["budget"], st["min_margin"], bookmakers=st["bookmakers"],
                     commissions=st["commissions"], rounding=st["rounding"],
-                    max_age_s=st["max_odds_age_s"], exact_bookmakers=(st["auto_bookmaker"],))
+                    max_age_s=st["max_odds_age_s"], exact_bookmakers=(st["auto_bookmaker"],),
+                    markets=st["markets"])
         self.store.replace_opportunities(opps)
         self.last_scan = {"at": now_iso(), "events": len(events), "error": ""}
         return self.opportunities()
@@ -136,7 +140,8 @@ class Service:
         out = self.store.opportunities()
         for o in out:
             for leg in o["legs"]:
-                leg["mode"] = "auto" if leg["bookmaker"] == auto else "manual"
+                leg["mode"] = "auto" if leg["bookmaker"] == auto and leg.get("can_auto", True) \
+                    else "manual"
         return out
 
     # --- operaciones ------------------------------------------------------
@@ -180,7 +185,8 @@ class Service:
             "created_at": now_iso(), "event_id": meta.get("event_id", ""),
             "sport": meta.get("sport", ""), "league": meta.get("league", ""),
             "home": meta["home"], "away": meta.get("away", ""), "date": meta.get("date", ""),
-            "source": meta.get("source", ""), "margin": margin, "budget": budget, "legs": legs,
+            "source": meta.get("source", ""), "market_label": meta.get("market_label", ""),
+            "margin": margin, "budget": budget, "legs": legs,
             "cancelled": False, "settled": None,
             "log": [{"at": now_iso(), "msg": msg}],
         }
