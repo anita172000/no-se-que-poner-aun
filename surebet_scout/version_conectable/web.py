@@ -11,6 +11,7 @@ from betfair import BetfairClient
 from exchange import BetfairExchange, SimulatedExchange
 from feeds import DemoFeed, OddsApiIoFeed
 from scrapers.betfair_odds import BetfairOddsSource
+from scrapers.betway import BetwaySource
 from scrapers.feed import WebsFeed
 from scrapers.kambi import KambiSource
 from service import Service, ServiceError
@@ -42,7 +43,7 @@ def build_service(env=None):
     elif mode == "demo":
         feed = DemoFeed()
     else:
-        sources = [("PAF ES / LeoVegas ES", KambiSource())]
+        sources = [("PAF ES / LeoVegas ES", KambiSource()), ("Betway ES", BetwaySource())]
         if client:  # leer cuotas de Betfair es gratis con tu cuenta (no apuesta nada)
             sources.append(("Betfair", BetfairOddsSource(client)))
         feed = WebsFeed(sources)

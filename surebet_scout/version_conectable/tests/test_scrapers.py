@@ -158,3 +158,114 @@ def test_webs_feed_merges_sources_and_keeps_partial_errors():
     feed = WebsFeed([("Kambi", Ok()), ("X", Broken())])
     assert len(feed.fetch(["*"], None, 48, 10)) == 1
     assert feed.warnings == ["X: acceso bloqueado"] and feed.status()["sources"]["X"]["errors"]
+
+
+# --- Betway ---------------------------------------------------------------------
+from scrapers.betway import BetwaySource, canonical_market as bw_canonical, parse_markets  # noqa: E402
+
+MS = int(START.timestamp() * 1000)
+
+
+def bw_payload():
+    ev = {"Id": 7, "CategoryCName": "soccer", "HomeTeamName": "Real Betis", "AwayTeamName": "Villarreal",
+          "HomeTeamCName": "real-betis", "AwayTeamCName": "villarreal", "Milliseconds": MS,
+          "GroupName": "LaLiga", "SubCategoryName": "España", "IsLive": False, "IsOutright": False}
+
+    def mk(mid, cname, ttype, outs, h=0.0):
+        return {"Id": mid, "EventId": 7, "MarketCName": cname, "TypeCName": ttype, "Handicap": h,
+                "IsSuspended": False, "Outcomes": [[mid * 10 + i for i in range(len(outs))]]}
+
+    def oc(mid, outs):
+        return [{"Id": mid * 10 + i, "TeamCName": t, "OddsDecimal": o, "IsActive": True, "IsDisplay": True,
+                 "Handicap": hh} for i, (t, o, hh) in enumerate(outs)]
+    spec = [
+        (1, "win-draw-win", "win-draw-win", [("1", 2.6, None), ("x", 3.3, None), ("2", 2.8, None)], 0.0),
+        (2, "win-draw-win-1up", "win-draw-win", [("--home-team-", 2.4, None), ("draw", 3.6, None), ("--away-team-", 2.6, None)], 0.0),
+        (3, "-total-goals---2-5", "handicap-goals-over", [("over", 1.9, 2.5), ("under", 1.9, 2.5)], 2.5),
+        (4, "-real-betis---total-goals---1-5", "handicap-goals-over", [("over", 2.1, 1.5), ("under", 1.7, 1.5)], 1.5),
+        (5, "-1st-half-----total-goals---0-5", "handicap-goals-over", [("over", 1.4, 0.5), ("under", 2.8, 0.5)], 0.5),
+        (6, "both-teams-to-score", "both-teams-to-score", [("yes", 1.7, None), ("no", 2.1, None)], 0.0),
+        (7, "either-team-to-score", "both-teams-to-score", [("yes", 1.1, None), ("no", 8.0, None)], 0.0),
+        (8, "correct-score", "correct-score", [("1-0", 7.0, None), ("0-0", 9.0, None)], 0.0),
+        (9, "double-chance", "double-chance", [("1x", 1.5, None), ("12", 1.3, None), ("2x", 1.6, None)], 0.0),
+        (10, "-handicap---3-way", "handicap-wdw", [("--home-team-", 6.0, -2.0), ("draw", 4.5, 2.0), ("--away-team-", 1.4, 2.0)], -2.0),
+    ]
+    markets = [mk(mid, c, t, o, h) for mid, c, t, o, h in spec]
+    outcomes = [x for mid, c, t, o, h in spec for x in oc(mid, o)]
+    return {"Events": [ev], "Markets": markets, "Outcomes": outcomes}
+
+
+def test_betway_mapping_is_strict():
+    evs = parse_markets(bw_payload(), "football")
+    assert len(evs) == 1
+    m = evs[0]["markets"]
+    assert m["ML"]["prices"]["Betway ES"] == {"home": 2.6, "draw": 3.3, "away": 2.8}
+    assert set(m) == {"ML", "Totals:2.5", "Team Total Home:1.5", "Totals HT:0.5", "Both Teams To Score",
+                      "Double Chance", "European Handicap:-2"}
+    assert m["Double Chance"]["prices"]["Betway ES"] == {"1X": 1.5, "12": 1.3, "X2": 1.6}
+    # el 1X2 "con 1 gol de ventaja" o "cualquier equipo marca" nunca se confunden
+    assert bw_canonical("win-draw-win-1up", "win-draw-win", "a", "b", "football") is None
+    assert bw_canonical("either-team-to-score", "both-teams-to-score", "a", "b", "football") is None
+    assert bw_canonical("win-draw-win", "win-draw-win", "a", "b", "ice-hockey") == "ML Regulation"
+    assert bw_canonical("money-line", "to-win", "a", "b", "basketball") == "ML"
+
+
+def test_betway_source_lists_and_details():
+    calendar = '<div data-eventid="7"><div data-marketid="1"></div></div>'
+    event_page = r'... MarketIds\":[1,3,6] ...'
+
+    def handler(req):
+        if req.url.path.endswith("/cat/soccer/calendar"):
+            return httpx.Response(200, text=calendar)
+        if "/calendar" in req.url.path:
+            return httpx.Response(404)
+        if req.url.path.endswith("/event/7"):
+            return httpx.Response(200, text=event_page)
+        if req.url.path.endswith("getEventMarkets"):
+            import json as _j
+            wanted = set(_j.loads(req.content)["MarketIds"])
+            p = bw_payload()
+            p["Markets"] = [x for x in p["Markets"] if x["Id"] in wanted]
+            return httpx.Response(200, json=p)
+        return httpx.Response(500)
+    client = PoliteClient(min_interval=0, http=httpx.Client(transport=httpx.MockTransport(handler)), sleep=lambda s: None)
+    src = BetwaySource(client)
+    listed, errors = src.list(["football", "tennis"], None, 48)
+    assert errors == [] and len(listed) == 1 and set(listed[0]["markets"]) == {"ML"}
+    assert listed[0]["refs"] == {"betway": ["7"]}
+    full, errors = src.details(src.detail_refs(listed[0]))
+    assert errors == [] and {"ML", "Totals:2.5", "Both Teams To Score"} <= set(full[0]["markets"])
+
+
+def test_webs_feed_only_details_matches_seen_in_two_platforms():
+    calls = {"kambi": [], "betway": []}
+
+    def ev(eid, home, away, refs, bk):
+        return {"id": eid, "sport": "football", "home": home, "away": away, "date": ISO, "urls": {},
+                "updated": {}, "refs": refs, "markets": {"ML": {"name": "ML", "line": None, "prices": {
+                    bk: {"home": 2.0, "draw": 3.0, "away": 4.0}}}}}
+
+    class K:
+        def bookmakers(self): return ["PAF ES"]
+        def list(self, *a): return ([ev("k1", "Real Betis", "Villarreal CF", {"kambi": ["1"]}, "PAF ES"),
+                                     ev("k2", "Getafe", "Osasuna", {"kambi": ["2"]}, "PAF ES")], [])
+        def detail_refs(self, e): return e["refs"].get("kambi", [])
+        def details(self, refs):
+            calls["kambi"] += refs
+            return ([{**ev("k1", "Real Betis", "Villarreal CF", {}, "PAF ES"), "markets": {"Totals:2.5": {
+                "name": "Totals", "line": 2.5, "prices": {"PAF ES": {"over": 2.2, "under": 1.7}}}}}], [])
+
+    class B:
+        def bookmakers(self): return ["Betway ES"]
+        def list(self, *a): return ([ev("b1", "Betis", "Villarreal", {"betway": ["7"]}, "Betway ES")], [])
+        def detail_refs(self, e): return e["refs"].get("betway", [])
+        def details(self, refs):
+            calls["betway"] += refs
+            return ([{**ev("b1", "Betis", "Villarreal", {}, "Betway ES"), "markets": {"Totals:2.5": {
+                "name": "Totals", "line": 2.5, "prices": {"Betway ES": {"over": 1.8, "under": 2.3}}}}}], [])
+    feed = WebsFeed([("Kambi", K()), ("Betway", B())])
+    out = feed.fetch(["*"], None, 48, 10)
+    assert calls == {"kambi": ["1"], "betway": ["7"]}  # Getafe-Osasuna solo está en una: no se pide
+    assert feed.matched == 1 and len(out) == 1
+    assert set(out[0]["markets"]["Totals:2.5"]["prices"]) == {"PAF ES", "Betway ES"}
+    assert scan(out, 100)  # 2.2 / 2.3 -> surebet

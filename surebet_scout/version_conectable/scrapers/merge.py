@@ -34,6 +34,10 @@ def merge_events(groups):
                 continue
             if not target.get("league") and ev.get("league"):
                 target["league"] = ev["league"]
+            for src, items in (ev.get("refs") or {}).items():
+                target.setdefault("refs", {}).setdefault(src, []).extend(items)
+            for src, raw in (ev.get("_raw") or {}).items():
+                target.setdefault("_raw", {}).setdefault(src, {}).update(raw)
             target.setdefault("urls", {}).update(ev.get("urls", {}))
             target.setdefault("updated", {}).update(ev.get("updated", {}))
             for key, mk in ev.get("markets", {}).items():

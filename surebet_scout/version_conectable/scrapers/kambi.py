@@ -122,6 +122,9 @@ def parse_event(data, ev, bookmaker):
 
 
 class KambiSource:
+    """Dos pasos: list() lee la lista de partidos (con su 1X2) y details() pide
+    todos los mercados solo de los partidos elegidos."""
+
     def __init__(self, brands=None, client=None):
         self.brands = brands or BRANDS
         self.client = client or PoliteClient(min_interval=0.4)
@@ -129,7 +132,7 @@ class KambiSource:
     def bookmakers(self):
         return list(self.brands)
 
-    def fetch(self, sports, bookmakers, hours_ahead, max_events):
+    def list(self, sports, bookmakers, hours_ahead):
         now = datetime.now(timezone.utc)
         until = now + timedelta(hours=hours_ahead)
         sports = DEFAULT_SPORTS if "*" in sports else sports
@@ -137,7 +140,6 @@ class KambiSource:
         for bk, brand in self.brands.items():
             if bookmakers and bk not in bookmakers:
                 continue
-            listed = []
             for sport in sports:
                 try:
                     d = self.client.get_json(f"{BASE}/{brand}/listView/{_sport_path(sport)}.json",
@@ -154,20 +156,48 @@ class KambiSource:
                         continue
                     if not ev.get("homeName") or not ev.get("awayName"):
                         continue  # torneos/apuestas a largo plazo
-                    listed.append((start, sport, ev))
-            listed.sort(key=lambda x: x[0])
-            for start, sport, ev in listed[:max_events]:
-                try:
-                    data = self.client.get_json(f"{BASE}/{brand}/betoffer/event/{ev['id']}.json",
-                                                {"lang": "es_ES", "market": "ES"})
-                except SourceError as exc:
-                    errors.append(f"{bk}: {exc}")
-                    break
-                out.append({
-                    "id": f"kambi-{ev['id']}", "sport": sport,
-                    "league": " - ".join(p.get("name", "") for p in ev.get("path", [])[1:]),
-                    "home": ev["homeName"], "away": ev["awayName"], "date": ev["start"],
-                    "urls": {bk: ""}, "markets": parse_event(data, ev, bk),
-                    "updated": {bk: now.strftime("%Y-%m-%dT%H:%M:%SZ")},
-                })
+                    out.append(self._event(ev, sport, bk, parse_event(item, ev, bk), now,
+                                           refs={"kambi": [[bk, brand, ev["id"]]]}))
         return out, errors
+
+    @staticmethod
+    def detail_refs(event):
+        raw = (event.get("_raw") or {}).get("kambi", {})
+        return [(bk, brand, eid, raw[str(eid)][0], raw[str(eid)][1])
+                for bk, brand, eid in (event.get("refs") or {}).get("kambi", []) if str(eid) in raw]
+
+    def details(self, refs):
+        out, errors = [], []
+        now = datetime.now(timezone.utc)
+        for bk, brand, eid, ev, sport in refs:
+            try:
+                data = self.client.get_json(f"{BASE}/{brand}/betoffer/event/{eid}.json",
+                                            {"lang": "es_ES", "market": "ES"})
+            except SourceError as exc:
+                if "404" in str(exc):
+                    continue  # el partido ya no está (empezó o lo retiraron)
+                errors.append(f"{bk}: {exc}")
+                break
+            out.append(self._event(ev, sport, bk, parse_event(data, ev, bk), now))
+        return out, errors
+
+    @staticmethod
+    def _event(ev, sport, bk, markets, now, refs=None):
+        e = {"id": f"kambi-{ev['id']}", "sport": sport,
+             "league": " - ".join(p.get("name", "") for p in ev.get("path", [])[1:]),
+             "home": ev["homeName"], "away": ev["awayName"], "date": ev["start"],
+             "urls": {bk: ""}, "markets": markets,
+             "updated": {bk: now.strftime("%Y-%m-%dT%H:%M:%SZ")}}
+        if refs:
+            e["refs"] = refs
+            e["_raw"] = {"kambi": {str(ev["id"]): [ev, sport]}}
+        return e
+
+    def fetch(self, sports, bookmakers, hours_ahead, max_events):
+        """Compatibilidad: lista + detalles de los primeros partidos."""
+        listed, errors = self.list(sports, bookmakers, hours_ahead)
+        listed.sort(key=lambda e: e["date"])
+        refs = [(bk, brand, eid, e["_raw"]["kambi"][str(eid)][0], e["sport"])
+                for e in listed[:max_events] for bk, brand, eid in e["refs"]["kambi"]]
+        evs, err2 = self.details(refs)
+        return evs, errors + err2

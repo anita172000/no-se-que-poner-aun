@@ -38,8 +38,10 @@ ahí podría perder.
 ## Conexiones
 
 - **Cuotas gratis (por defecto, `SUREBET_FEED=webs`):**
-  - **PAF ES y LeoVegas ES** (plataforma Kambi), con todos sus mercados. Usa los mismos datos
-    públicos que cargan sus webs, con pausas entre peticiones.
+  - **PAF ES y LeoVegas ES** (plataforma Kambi) y **Betway ES**, con todos sus mercados y líneas.
+    Usa los mismos datos públicos que cargan sus webs, con pausas entre peticiones.
+  - En dos fases: primero la lista de partidos de cada casa (rápido) y después todos los
+    mercados solo de los partidos que están en dos o más plataformas.
   - **Betfair Exchange**: si pones tus claves, lee también sus cuotas por la API oficial (gratis).
   - **Resto de casas**: solo muestran cuotas desde España. Ejecuta `herramientas/capturar_casas.py`
     en tu ordenador y pasa el `.zip` que crea para poder escribir sus lectores.

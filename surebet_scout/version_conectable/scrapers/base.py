@@ -30,6 +30,15 @@ class PoliteClient:
         self.requests = 0
 
     def get_json(self, url, params=None):
+        return self._request("GET", url, params=params).json_or_error()
+
+    def get_text(self, url, params=None):
+        return self._request("GET", url, params=params).text
+
+    def post_json(self, url, body):
+        return self._request("POST", url, json=body).json_or_error()
+
+    def _request(self, method, url, **kw):
         for attempt in range(self.retries + 1):
             with self._lock:
                 wait = self.min_interval - (time.monotonic() - self._last)
@@ -37,7 +46,7 @@ class PoliteClient:
                     self._sleep(wait)
                 self._last = time.monotonic()
             try:
-                r = self.http.get(url, params=params)
+                r = self.http.request(method, url, **kw)
                 self.requests += 1
             except httpx.HTTPError as exc:
                 if attempt == self.retries:
@@ -53,11 +62,20 @@ class PoliteClient:
                 raise SourceError(f"acceso bloqueado ({r.status_code}); ¿estás fuera de España?")
             if r.status_code >= 400:
                 raise SourceError(f"respuesta {r.status_code}")
-            try:
-                return r.json()
-            except ValueError:
-                raise SourceError("respuesta no es JSON")
+            return _Response(r)
         raise SourceError("sin respuesta")
+
+
+class _Response:
+    def __init__(self, r):
+        self.text = r.text
+        self._r = r
+
+    def json_or_error(self):
+        try:
+            return self._r.json()
+        except ValueError:
+            raise SourceError("respuesta no es JSON")
 
 
 def new_market(markets, key, name, line=None, label=None):
