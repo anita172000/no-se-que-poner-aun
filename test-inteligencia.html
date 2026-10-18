@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Espectro Mental · Test de CI y personalidad</title>
+<meta name="description" content="Test de inteligencia (CI estimado) y análisis psicológico Big Five, 100 % privado en tu navegador.">
+<style>
+:root{
+  --bg:#f5f4fb; --bg2:#ebe8fa; --card:#ffffff; --ink:#1a1930; --muted:#66658a; --line:#e5e3f3;
+  --accent:#6a48f2; --accent-ink:#ffffff; --accent2:#10b3a3; --warm:#ff7a59; --ok:#18a97a;
+  --shadow:0 1px 2px rgba(30,20,90,.06),0 12px 40px -12px rgba(60,40,160,.18);
+  --r:20px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0d0c19; --bg2:#15132b; --card:#171629; --ink:#efeefc; --muted:#9d9bc0; --line:#2b2947;
+    --accent:#8f75ff; --accent-ink:#0d0c19; --accent2:#2dd4bf; --warm:#ff9174; --ok:#34d399;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 44px -14px rgba(0,0,0,.6);
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; min-height:100vh; color:var(--ink); background:var(--bg);
+  background-image:radial-gradient(900px 500px at 85% -10%,color-mix(in srgb,var(--accent) 16%,transparent),transparent 70%),
+                   radial-gradient(700px 480px at -10% 110%,color-mix(in srgb,var(--accent2) 14%,transparent),transparent 70%);
+  background-attachment:fixed;
+  font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+#prog{position:fixed;inset:0 0 auto 0;height:4px;background:transparent;z-index:20}
+#prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s ease;border-radius:0 4px 4px 0}
+header.top{max-width:860px;margin:0 auto;padding:22px 16px 6px;display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.2px}
+.logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#fff;font-size:16px}
+main{max-width:860px;margin:0 auto;padding:10px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:28px}
+.screen{animation:up .45s cubic-bezier(.2,.8,.2,1) both}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+h1{font-size:clamp(30px,6vw,46px);line-height:1.08;margin:.2em 0 .3em;letter-spacing:-.02em}
+h2{font-size:clamp(22px,4vw,28px);line-height:1.2;margin:0 0 .4em;letter-spacing:-.01em}
+h3{font-size:18px;margin:0 0 .3em}
+p{margin:.4em 0}
+.lead{font-size:18px;color:var(--muted);max-width:60ch}
+.grad{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:24px 0}
+.feat div{border:1px solid var(--line);border-radius:14px;padding:16px;background:color-mix(in srgb,var(--bg2) 55%,var(--card))}
+.feat b{display:block;margin-bottom:2px}
+.feat .ic{font-size:22px;display:block;margin-bottom:6px}
+.btn{appearance:none;border:0;cursor:pointer;font:inherit;font-weight:650;padding:14px 26px;border-radius:14px;
+  background:var(--accent);color:var(--accent-ink);box-shadow:0 8px 22px -8px var(--accent);transition:transform .15s,box-shadow .15s,filter .15s}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.btn:active{transform:none}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.link{background:none;color:var(--muted);box-shadow:none;padding:10px 6px;font-weight:500}
+.btn:focus-visible,.opt:focus-visible,.lk:focus-visible,input:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:2px}
+.notice{margin-top:22px;padding:12px 14px;border-radius:12px;font-size:13.5px;color:var(--muted);background:color-mix(in srgb,var(--warm) 9%,var(--card));border:1px solid color-mix(in srgb,var(--warm) 25%,var(--line))}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+/* quiz */
+.meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px;font-size:13px}
+.pill{font-weight:700;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);padding:4px 11px;border-radius:99px}
+.chip{margin-left:auto;color:var(--muted)}
+.count{color:var(--muted);font-variant-numeric:tabular-nums}
+.q{font-size:clamp(19px,3.4vw,24px);line-height:1.35;font-weight:600;margin:.1em 0 .7em}
+.seq{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 18px}
+.seq span{min-width:52px;text-align:center;padding:10px 12px;border-radius:12px;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;background:var(--bg2);border:1px solid var(--line)}
+.seq span.qm{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.opts{display:grid;gap:10px}
+@media(min-width:620px){.opts{grid-template-columns:1fr 1fr}}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;font:inherit;color:inherit;cursor:pointer;padding:14px 16px;
+  border-radius:14px;border:1.5px solid var(--line);background:var(--card);transition:border-color .15s,background .15s,transform .15s}
+.opt b{flex:none;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font-size:13px;background:var(--bg2);color:var(--muted)}
+.opt:hover{border-color:var(--accent);transform:translateY(-1px)}
+.opt.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 11%,var(--card))}
+.opt.sel b{background:var(--accent);color:var(--accent-ink)}
+.opts.vis{grid-template-columns:repeat(2,1fr)}
+@media(min-width:620px){.opts.vis{grid-template-columns:repeat(4,1fr)}}
+.opt.visopt{flex-direction:column;padding:10px}
+.opt.visopt svg{width:100%;max-width:110px}
+.matrix{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:330px;margin:6px auto 22px}
+.matrix svg{width:100%;border:1.5px solid var(--line);border-radius:12px;background:var(--bg2);color:var(--ink)}
+.matrix svg.unk{border-style:dashed;border-color:var(--accent)}
+.opt svg{color:var(--ink)}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:22px;gap:10px}
+.digits{font-size:clamp(34px,9vw,56px);font-weight:800;letter-spacing:.18em;text-align:center;padding:26px 8px;border-radius:16px;background:var(--bg2);border:1px solid var(--line);font-variant-numeric:tabular-nums;margin:10px 0}
+.timebar{height:6px;border-radius:9px;background:var(--bg2);overflow:hidden}
+.timebar i{display:block;height:100%;width:100%;background:var(--accent2);transform-origin:left;animation:shrink linear forwards}
+@keyframes shrink{to{transform:scaleX(0)}}
+input.num{width:100%;font:inherit;font-size:28px;letter-spacing:.2em;text-align:center;padding:16px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);margin:10px 0 4px}
+/* likert */
+.st{font-size:clamp(21px,4vw,28px);line-height:1.3;font-weight:650;margin:.2em 0 1em}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.lk{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 4px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:inherit;font:inherit;cursor:pointer;transition:all .15s}
+.lk b{font-size:20px}
+.lk span{font-size:11.5px;color:var(--muted);text-align:center;line-height:1.2}
+.lk:hover{border-color:var(--accent);transform:translateY(-2px)}
+.lk.sel{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.lk.sel span{color:inherit}
+@media(max-width:520px){.lk span{font-size:10px}.lk{padding:12px 2px}}
+/* results */
+.hero{text-align:center;padding:40px 22px;background:linear-gradient(160deg,color-mix(in srgb,var(--accent) 14%,var(--card)),var(--card) 60%)}
+.arch{font-size:clamp(24px,5vw,34px);font-weight:800;letter-spacing:-.01em;margin:4px 0 2px}
+.iqnum{font-size:clamp(84px,22vw,150px);line-height:1;font-weight:850;letter-spacing:-.04em;font-variant-numeric:tabular-nums;margin:6px 0 0}
+.badge{display:inline-block;padding:6px 16px;border-radius:99px;font-weight:700;background:var(--accent);color:var(--accent-ink);margin:8px 0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:22px}
+.kpi{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--card)}
+.kpi b{display:block;font-size:22px}
+.kpi span{font-size:12.5px;color:var(--muted)}
+section.card{margin-top:18px}
+.two{display:grid;gap:18px;grid-template-columns:1fr;align-items:center}
+@media(min-width:760px){.two{grid-template-columns:1fr 1fr}}
+.bars{display:grid;gap:14px}
+.bar-h{display:flex;justify-content:space-between;font-weight:650;font-size:14.5px;margin-bottom:5px}
+.bar{height:9px;border-radius:9px;background:var(--bg2);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+.tag{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:99px;margin-left:8px;background:var(--bg2);color:var(--muted);vertical-align:middle}
+.tag.high{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.tag.low{background:color-mix(in srgb,var(--warm) 18%,transparent);color:var(--warm)}
+.trait{padding:16px 0;border-top:1px solid var(--line)}
+.trait:first-of-type{border-top:0}
+.trait .tip{font-size:14px;color:var(--muted);margin-top:6px}
+.trait .tip b{color:var(--accent)}
+svg.chart text{fill:var(--muted);font:12px system-ui,sans-serif}
+svg.chart .ink{fill:var(--ink)}
+svg.chart .grid{stroke:var(--line);fill:none}
+.legend{display:grid;gap:6px;margin-top:14px;font-size:14px}
+.legend div{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:10px;border:1px solid transparent}
+.legend div.on{border-color:var(--line);background:var(--bg2);font-weight:650}
+.legend i{width:14px;height:14px;border-radius:5px;flex:none}
+.legend em{margin-left:auto;font-style:normal;color:var(--muted);font-variant-numeric:tabular-nums}
+.insight{display:flex;gap:14px;padding:14px 0;border-top:1px solid var(--line)}
+.insight:first-of-type{border-top:0}
+.insight .ic{font-size:24px}
+.lists{display:grid;gap:16px}
+@media(min-width:700px){.lists{grid-template-columns:1fr 1fr}}
+.lists ul{margin:6px 0 0;padding-left:20px}
+.lists li{margin:4px 0}
+@media print{
+  body{background:#fff}.btn,#prog,.noprint{display:none!important}
+  .card{box-shadow:none;break-inside:avoid}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="prog"><i></i></div>
+<header class="top"><div class="logo">◎</div><span>Espectro Mental</span></header>
+<main id="app"></main>
+
+<script>
+/* ---------- utilidades ---------- */
+const app = document.getElementById('app');
+const progBar = document.querySelector('#prog i');
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const erf = x => { const s = Math.sign(x); x = Math.abs(x); const t = 1 / (1 + 0.3275911 * x);
+  return s * (1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x)); };
+const cdf = z => 0.5 * (1 + erf(z / Math.SQRT2));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const setProgress = p => { progBar.style.width = clamp(p, 0, 100) + '%'; };
+
+/* ---------- banco de preguntas cognitivas ---------- */
+const DOMS = {
+  log: 'Razonamiento lógico', ver: 'Comprensión verbal', num: 'Razonamiento numérico',
+  esp: 'Visoespacial', mem: 'Memoria de trabajo'
+};
+const mc = (dom, d, q, opts, a, seq) => ({ type: 'mc', dom, d, q, opts, a, seq });
+const COG_BANK = [
+  // numérico
+  mc('num', 1, 'Completa la serie:', ['30', '34', '36', '49'], 2, ['1', '4', '9', '16', '25', '?']),
+  mc('num', 2, 'Completa la serie:', ['18', '20', '21', '24'], 2, ['2', '3', '5', '8', '13', '?']),
+  mc('num', 2, 'Completa la serie:', ['24', '25', '26', '27'], 2, ['5', '6', '8', '11', '15', '20', '?']),
+  mc('num', 3, 'Un padre tiene 4 veces la edad de su hijo. Dentro de 20 años tendrá exactamente el doble. ¿Qué edad tiene hoy el hijo?', ['5 años', '8 años', '10 años', '12 años'], 2),
+  mc('num', 3, 'Completa la serie:', ['67', '68', '132', '198'], 0, ['2', '6', '7', '21', '22', '66', '?']),
+  mc('num', 3, '¿De cuántas formas distintas se pueden ordenar las letras de la palabra AMOR?', ['12', '16', '24', '48'], 2),
+  mc('num', 4, 'Completa la serie:', ['30', '32', '33', '35'], 2, ['1', '2', '4', '7', '12', '20', '?']),
+  mc('num', 4, 'Completa la serie:', ['110', '120', '132', '144'], 2, ['2', '12', '30', '56', '90', '?']),
+  // lógica
+  mc('log', 2, 'Todos los bloops son razzies. Todos los razzies son lazzies. Por tanto…', ['Todos los bloops son lazzies', 'Todos los lazzies son bloops', 'Algunos lazzies no son razzies', 'Ningún bloop es lazzie'], 0),
+  mc('log', 2, 'Un bate y una pelota cuestan 1,10 € en total. El bate cuesta 1 € más que la pelota. ¿Cuánto cuesta la pelota?', ['0,10 €', '0,05 €', '0,15 €', '0,01 €'], 1),
+  mc('log', 2, 'Lanzas una moneda justa 3 veces y sale cara las 3. ¿Qué probabilidad hay de que la siguiente sea cara?', ['Menos del 50 %', 'Exactamente el 50 %', 'Más del 50 %', 'Depende de la moneda'], 1),
+  mc('log', 3, 'Si 5 máquinas tardan 5 minutos en fabricar 5 piezas, ¿cuánto tardarían 100 máquinas en fabricar 100 piezas?', ['100 minutos', '20 minutos', '5 minutos', '1 minuto'], 2),
+  mc('log', 3, 'Un nenúfar duplica su tamaño cada día y tarda 48 días en cubrir todo un lago. ¿Cuántos días tarda en cubrir la mitad?', ['24', '47', '46', '40'], 1),
+  mc('log', 3, 'Ningún artista es aburrido. Algunos programadores son aburridos. Por tanto…', ['Algunos programadores no son artistas', 'Todos los programadores son artistas', 'Ningún programador es artista', 'Algunos artistas son aburridos'], 0),
+  mc('log', 4, 'A dice: «B miente». B dice: «A y yo decimos la verdad». Cada persona siempre dice la verdad o siempre miente. ¿Quién dice la verdad?', ['Solo A', 'Solo B', 'Ambos', 'Ninguno'], 0),
+  // verbal
+  mc('ver', 1, 'Libro es a leer como tenedor es a…', ['Cocinar', 'Comer', 'Mesa', 'Cubierto'], 1),
+  mc('ver', 2, '¿Qué palabra NO pertenece al grupo?', ['Soneto', 'Haiku', 'Elegía', 'Novela'], 3),
+  mc('ver', 2, 'Elige el sinónimo de «efímero»:', ['Duradero', 'Pasajero', 'Brillante', 'Frágil'], 1),
+  mc('ver', 2, 'Mitigar es a agravar como elogiar es a…', ['Alabar', 'Censurar', 'Ignorar', 'Aplaudir'], 1),
+  mc('ver', 3, '«Ubicuo» significa…', ['Presente en todas partes', 'Muy antiguo', 'Oculto', 'Poderoso'], 0),
+  mc('ver', 4, '«Inefable» significa…', ['Increíble', 'Que no puede expresarse con palabras', 'Inevitable', 'Repugnante'], 1),
+];
+
+/* ---- matrices visuales ---- */
+const VIS = [
+  { d: 1, cell: (r, c) => ({ shape: ['circle', 'square', 'triangle'][c], n: r + 1, fill: 1, rot: 0 }),
+    wrong: [{ shape: 'triangle', n: 2, fill: 1, rot: 0 }, { shape: 'square', n: 3, fill: 1, rot: 0 }, { shape: 'circle', n: 3, fill: 1, rot: 0 }] },
+  { d: 2, cell: (r, c) => ({ shape: ['circle', 'square', 'triangle'][(r + c) % 3], n: 1, fill: r, rot: 0 }),
+    wrong: [{ shape: 'circle', n: 1, fill: 2, rot: 0 }, { shape: 'square', n: 1, fill: 1, rot: 0 }, { shape: 'triangle', n: 1, fill: 2, rot: 0 }] },
+  { d: 3, cell: (r, c) => ({ shape: 'square', n: [[1, 1, 2], [1, 2, 3], [2, 1, 3]][r][c], fill: r, rot: 0 }),
+    wrong: [{ shape: 'square', n: 2, fill: 2, rot: 0 }, { shape: 'square', n: 1, fill: 2, rot: 0 }, { shape: 'square', n: 3, fill: 1, rot: 0 }] },
+  { d: 4, cell: (r, c) => ({ shape: 'triangle', n: r + 1, fill: (r + c) % 2 === 0 ? 1 : 0, rot: c * 90 }),
+    wrong: [{ shape: 'triangle', n: 3, fill: 0, rot: 180 }, { shape: 'triangle', n: 2, fill: 1, rot: 180 }, { shape: 'triangle', n: 3, fill: 1, rot: 90 }] },
+];
+
+function cellSVG(s, cls) {
+  const sc = s.n === 1 ? 1 : s.n === 2 ? .9 : .75;
+  const xs = { 1: [50], 2: [34, 66], 3: [24, 50, 76] }[s.n];
+  const body = { circle: '<circle r="16"/>', square: '<rect x="-14" y="-14" width="28" height="28" rx="2"/>',
+    triangle: '<polygon points="0,-17 16,12 -16,12"/>' }[s.shape];
+  const fill = ['fill="none"', 'fill="currentColor"', 'fill="currentColor" fill-opacity=".3"'][s.fill];
+  const g = xs.map(x => `<g transform="translate(${x} 50) rotate(${s.rot}) scale(${sc})" ${fill} stroke="currentColor" stroke-width="2.6" vector-effect="non-scaling-stroke" stroke-linejoin="round">${body.replace(/\/>$/, ' vector-effect="non-scaling-stroke"/>')}</g>`).join('');
+  return `<svg viewBox="0 0 100 100" class="${cls || ''}" aria-hidden="true">${g}</svg>`;
+}
+const sameSpec = (a, b) => a.shape === b.shape && a.n === b.n && a.fill === b.fill && a.rot === b.rot;
+
+function buildCog() {
+  const items = COG_BANK.map(it => {
+    const opts = shuffle(it.opts.map((t, i) => ({ t, ok: i === it.a })));
+    return { ...it, opts };
+  });
+  VIS.forEach(v => {
+    const ans = v.cell(2, 2);
+    const opts = shuffle([{ spec: ans, ok: true }, ...v.wrong.filter(w => !sameSpec(w, ans)).map(spec => ({ spec, ok: false }))]);
+    items.push({ type: 'vis', dom: 'esp', d: v.d, q: '¿Qué figura completa la matriz?', cell: v.cell, opts });
+  });
+  const rnd = n => Array.from({ length: n }, () => Math.random() * 10 | 0);
+  const d6 = rnd(6), d5 = rnd(5), d8 = rnd(8);
+  items.push({ type: 'mem', dom: 'mem', d: 2, secs: 5, digits: d6, expect: d6.join(''), q: 'Memoriza los dígitos y escríbelos en el mismo orden.' });
+  items.push({ type: 'mem', dom: 'mem', d: 3, secs: 5, digits: d5, expect: d5.slice().reverse().join(''), q: 'Memoriza los dígitos y escríbelos al revés (del último al primero).' });
+  items.push({ type: 'mem', dom: 'mem', d: 4, secs: 7, digits: d8, expect: d8.join(''), q: 'Memoriza los dígitos y escríbelos en el mismo orden.' });
+  // orden aproximadamente creciente en dificultad, mezclando dominios
+  return items.map(it => ({ it, k: it.d + Math.random() * 1.1 })).sort((a, b) => a.k - b.k).map(x => x.it);
+}
+
+/* ---------- personalidad ---------- */
+const TRAITS = {
+  O: { name: 'Apertura', short: 'Apertura', fort: 'Creatividad y curiosidad por ideas nuevas', work: 'Salir de la zona de confort',
+    low: ['Prefieres lo concreto, probado y predecible. Aportas practicidad y estabilidad: tu foco está en lo que funciona.', 'Prueba una experiencia nueva a la semana: amplía tu zona de confort en pequeñas dosis.'],
+    mid: ['Equilibras curiosidad y practicidad: exploras ideas nuevas cuando merecen la pena y te apoyas en lo conocido cuando conviene.', 'Identifica en qué áreas quieres ser más audaz y en cuáles prefieres seguridad.'],
+    high: ['Mente inquieta, imaginativa y atraída por lo abstracto, el arte y las ideas poco convencionales. Lo repetitivo te aburre.', 'Cuidado con abrir muchos frentes y cerrar pocos: ponle estructura a tu creatividad.'] },
+  C: { name: 'Responsabilidad', short: 'Responsab.', fort: 'Disciplina y fiabilidad', work: 'Constancia y organización',
+    low: ['Funcionas mejor con flexibilidad y espontaneidad que con listas y horarios rígidos. Te adaptas bien; la constancia es tu reto.', 'Apóyate en sistemas externos: recordatorios, bloques de tiempo cortos, la regla de «solo 5 minutos».'],
+    mid: ['Eres razonablemente organizado y cumples, sin obsesión: sabes cuándo apretar y cuándo soltar.', 'Elige 1–2 hábitos clave para blindar y deja el resto flexible.'],
+    high: ['Disciplinado, fiable y orientado a objetivos. Planificas y terminas lo que empiezas.', 'Vigila el perfeccionismo y la rigidez: no todo necesita ser perfecto para estar bien.'] },
+  E: { name: 'Extraversión', short: 'Extraversión', fort: 'Energía social y comunicación', work: 'Proyección y confianza social',
+    low: ['Tiendes a la introversión: recargas energía en soledad o en círculos pequeños y piensas antes de hablar. Profundidad antes que cantidad.', 'Protege tus tiempos de recarga y elige 1–2 interacciones de calidad a la semana.'],
+    mid: ['Ambiversión: disfrutas de la compañía y también de tu espacio. Te adaptas al contexto social con facilidad.', 'Observa qué ambientes te dan energía y cuáles te la drenan.'],
+    high: ['Sociable, enérgico y comunicativo: buscas estímulo y contacto con otras personas. Contagias entusiasmo.', 'Reserva espacio para la reflexión en solitario; el ruido constante puede tapar lo que de verdad necesitas.'] },
+  A: { name: 'Amabilidad', short: 'Amabilidad', fort: 'Empatía y cooperación', work: 'Escucha y flexibilidad con los demás',
+    low: ['Directo, competitivo y escéptico: defiendes tus posturas sin mucho filtro. Útil para negociar y cuestionar, a costa de algún roce.', 'Practica la escucha activa antes de responder; cooperar no es perder.'],
+    mid: ['Combinas empatía y firmeza: ayudas a los demás pero sabes poner límites.', 'Comprueba que tu cooperación sea una elección y no una forma de evitar el conflicto.'],
+    high: ['Empático, confiado y cooperativo. Te importa el bienestar ajeno y sueles crear armonía a tu alrededor.', 'Aprende a decir «no» y a expresar desacuerdos: tus necesidades también cuentan.'] },
+  S: { name: 'Estabilidad emocional', short: 'Estab. emocional', fort: 'Calma y resiliencia emocional', work: 'Gestión del estrés y las emociones',
+    low: ['Sientes las emociones con intensidad: preocupación, estrés y cambios de ánimo se activan con facilidad. También es sensibilidad y alerta ante riesgos.', 'Respiración, ejercicio y rutinas de sueño regulan mucho; si el malestar es persistente, hablarlo con un profesional ayuda.'],
+    mid: ['Manejas bien el estrés la mayor parte del tiempo, con los altibajos normales de las épocas exigentes.', 'Detecta tus señales tempranas de sobrecarga y actúa antes de que escalen.'],
+    high: ['Serenidad y resistencia emocional: te recuperas rápido y mantienes la calma bajo presión.', 'Cuida no minimizar tus emociones ni las ajenas; calma no es lo mismo que desconexión.'] },
+};
+const EXTRAS = {
+  CUR: { name: 'Curiosidad intelectual', low: 'Aprendes más por necesidad que por placer; reavivar la curiosidad (cursos, lecturas, documentales) puede enriquecerte.', mid: 'Curiosidad saludable que se activa con lo que de verdad te interesa.', high: 'Hambre de saber: tu curiosidad es motor de aprendizaje y creatividad.' },
+  RES: { name: 'Resiliencia', low: 'Los reveses te pesan; la autocompasión y dividir los problemas en pasos pequeños ayudan a reconstruir resiliencia.', mid: 'Te recuperas de los golpes a tu ritmo; con apoyo y rutina lo haces bien.', high: 'Capacidad de rebote: conviertes los tropiezos en aprendizaje.' },
+  EQ: { name: 'Inteligencia emocional', low: 'Leer tus emociones y las ajenas te cuesta; poner nombre a lo que sientes (un diario emocional) es un gran entrenamiento.', mid: 'Buena lectura emocional en general, con margen en situaciones tensas.', high: 'Te entiendes y entiendes a los demás: base del liderazgo y de las relaciones sanas.' },
+  REF: { name: 'Pensamiento reflexivo', low: 'Decides rápido, por intuición: útil en urgencias, pero conviene frenar en las decisiones importantes.', mid: 'Combinas intuición y análisis según la situación.', high: 'Sopesas alternativas y cambias de opinión ante buenos argumentos.' },
+};
+const LIK = [
+  ['O', 'Tengo una imaginación muy activa.'], ['O', 'Disfruto reflexionando sobre ideas abstractas o teóricas.'],
+  ['O', 'El arte, la música o la literatura me conmueven con facilidad.'], ['O', 'Prefiero la rutina conocida antes que probar cosas nuevas.', 1],
+  ['O', 'Los debates filosóficos me parecen una pérdida de tiempo.', 1],
+  ['C', 'Mantengo mis cosas y mi agenda ordenadas.'], ['C', 'Cuando empiezo algo, lo termino.'],
+  ['C', 'Planifico con antelación en lugar de improvisar.'], ['C', 'Me cuesta ser constante con mis objetivos.', 1],
+  ['C', 'Dejo las tareas importantes para el último momento.', 1],
+  ['E', 'Me siento con energía cuando estoy rodeado de gente.'], ['E', 'Me resulta fácil iniciar una conversación con desconocidos.'],
+  ['E', 'Suelo tomar la iniciativa en los grupos.'], ['E', 'Prefiero pasar el tiempo a solas que en reuniones sociales.', 1],
+  ['E', 'Me reservo mucho y expreso poco mis emociones.', 1],
+  ['A', 'Me preocupo sinceramente por el bienestar de los demás.'], ['A', 'Confío en las personas con facilidad.'],
+  ['A', 'Ayudo a otros aunque no obtenga nada a cambio.'], ['A', 'Suelo desconfiar de las verdaderas intenciones de la gente.', 1],
+  ['A', 'Me cuesta ponerme en el lugar de los demás.', 1],
+  ['S', 'Me preocupo por las cosas con mucha frecuencia.', 1], ['S', 'Me estreso con facilidad.', 1],
+  ['S', 'Mi estado de ánimo cambia con frecuencia.', 1], ['S', 'Mantengo la calma cuando estoy bajo presión.'],
+  ['S', 'Me recupero rápido de los disgustos.'],
+  ['CUR', 'Me pregunto con frecuencia cómo funcionan las cosas.'], ['CUR', 'Aprender algo nuevo me resulta placentero por sí mismo.'],
+  ['CUR', 'Me aburro enseguida cuando no estoy aprendiendo nada.'],
+  ['RES', 'Tras un fracaso, me levanto y lo intento de nuevo.'], ['RES', 'Veo los problemas más como retos que como amenazas.'],
+  ['RES', 'Me cuesta recuperarme después de un revés importante.', 1],
+  ['EQ', 'Identifico con claridad lo que siento en cada momento.'], ['EQ', 'Noto enseguida cuando alguien está incómodo o triste.'],
+  ['EQ', 'A menudo no sé por qué me siento como me siento.', 1],
+  ['REF', 'Antes de decidir, valoro varias alternativas.'], ['REF', 'Cambio de opinión cuando me presentan mejores argumentos.'],
+  ['REF', 'Suelo fiarme de la primera impresión sin cuestionarla.', 1],
+].map(([t, q, r]) => ({ t, q, r: !!r }));
+
+const BANDS = [
+  { min: 130, name: 'Muy superior', share: '≈ 2 %', col: '#ff7f5a' },
+  { min: 120, name: 'Superior', share: '≈ 7 %', col: '#e7b84a' },
+  { min: 110, name: 'Medio-alto', share: '≈ 16 %', col: '#7fcf7a' },
+  { min: 90, name: 'Medio', share: '≈ 50 %', col: '#3fc2a6' },
+  { min: 80, name: 'Medio-bajo', share: '≈ 16 %', col: '#74b3d8' },
+  { min: 70, name: 'Fronterizo', share: '≈ 7 %', col: '#8aa0cf' },
+  { min: 0, name: 'Bajo', share: '≈ 2 %', col: '#9aa0b8' },
+];
+const bandOf = iq => BANDS.find(b => iq >= b.min);
+const LIKLAB = ['Muy en desacuerdo', 'En desacuerdo', 'Neutral', 'De acuerdo', 'Muy de acuerdo'];
+
+/* ---------- estado ---------- */
+let S;
+const TOTAL = COG_BANK.length + VIS.length + 3 + LIK.length;
+function reset() { S = { cog: [], ci: 0, res: [], li: 0, lans: [], t0: 0, memT: 0 }; }
+reset();
+
+/* ---------- pantallas ---------- */
+function mount(html) { app.innerHTML = html; window.scrollTo({ top: 0 }); }
+
+function welcome() {
+  setProgress(0);
+  mount(`
+  <section class="screen card">
+    <span class="pill">Test cognitivo + análisis psicológico</span>
+    <h1>Descubre tu <span class="grad">espectro mental</span></h1>
+    <p class="lead">Una evaluación en dos partes: estima tu <b>cociente intelectual</b> y dibuja tu <b>perfil de personalidad</b> (modelo Big Five) con un informe cruzado de fortalezas y puntos ciegos.</p>
+    <div class="feat">
+      <div><span class="ic">🧩</span><b>Parte 1 · ${COG_BANK.length + VIS.length + 3} retos</b><span class="muted small">Lógica, numérico, verbal, matrices visuales y memoria de trabajo.</span></div>
+      <div><span class="ic">🧭</span><b>Parte 2 · ${LIK.length} afirmaciones</b><span class="muted small">Personalidad, resiliencia, curiosidad e inteligencia emocional.</span></div>
+      <div><span class="ic">🔒</span><b>100 % privado</b><span class="muted small">Todo ocurre en tu navegador. No se envía ni guarda nada.</span></div>
+    </div>
+    <div class="row"><button class="btn" data-act="start">Comenzar el test</button><span class="muted small">≈ 15–20 minutos · sin prisas, el tiempo no puntúa</span></div>
+    <p class="notice"><b>Importante:</b> es una herramienta orientativa y de entretenimiento, no un instrumento clínico validado. El CI real solo lo determina un psicólogo con pruebas estandarizadas (WAIS, Raven…). Este test breve tiene un margen de error amplio y no distingue bien por encima de ≈ 135.</p>
+  </section>`);
+}
+
+function intro(part, title, text, act, btn) {
+  mount(`
+  <section class="screen card">
+    <span class="pill">${part}</span>
+    <h2 style="margin-top:12px">${title}</h2>
+    <p class="lead">${text}</p>
+    <div class="row" style="margin-top:20px"><button class="btn" data-act="${act}">${btn}</button></div>
+  </section>`);
+}
+
+function shell(part, n, total, chip, body, foot) {
+  return `<section class="screen card quiz"><div class="meta"><span class="pill">${part}</span><span class="count">${n} / ${total}</span><span class="chip">${chip}</span></div>${body}${foot || ''}</section>`;
+}
+
+function showCog() {
+  clearTimeout(S.memT);
+  const it = S.cog[S.ci];
+  if (!it) return intro('Parte 2 de 2', 'Ahora, tu personalidad',
+    'No hay respuestas correctas ni incorrectas. Responde con lo primero que sientas: cuánto te describe cada frase.', 'p2', 'Continuar');
+  setProgress(S.ci / TOTAL * 100);
+  const n = S.ci + 1, total = S.cog.length, chip = DOMS[it.dom];
+  const skip = `<div class="foot"><span class="muted small">Puedes saltar si no lo sabes</span><button class="btn link" data-act="skip">No lo sé →</button></div>`;
+  if (it.type === 'mem') return showMem(it, n, total, chip);
+  let body = `<p class="q">${it.q}</p>`;
+  if (it.seq) body += `<div class="seq">${it.seq.map(x => `<span class="${x === '?' ? 'qm' : ''}">${x}</span>`).join('')}</div>`;
+  if (it.type === 'vis') {
+    let cells = '';
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++)
+      cells += (r === 2 && c === 2) ? `<svg viewBox="0 0 100 100" class="unk"><text x="50" y="66" text-anchor="middle" font-size="46" font-weight="700" fill="currentColor">?</text></svg>` : cellSVG(it.cell(r, c));
+    body += `<div class="matrix">${cells}</div><div class="opts vis">` +
+      it.opts.map((o, i) => `<button class="opt visopt" data-act="pick" data-i="${i}" aria-label="Opción ${'ABCD'[i]}"><b>${'ABCD'[i]}</b>${cellSVG(o.spec)}</button>`).join('') + '</div>';
+  } else {
+    body += '<div class="opts">' + it.opts.map((o, i) => `<button class="opt" data-act="pick" data-i="${i}"><b>${'ABCD'[i]}</b><span>${o.t}</span></button>`).join('') + '</div>';
+  }
+  mount(shell('Parte 1 · Cognitiva', n, total, chip, body, skip));
+}
+
+function showMem(it, n, total, chip) {
+  mount(shell('Parte 1 · Cognitiva', n, total, chip,
+    `<p class="q">${it.q}</p><div class="digits" aria-live="polite">${it.digits.join(' ')}</div>
+     <div class="timebar"><i style="animation-duration:${it.secs}s"></i></div>
+     <p class="muted small" style="text-align:center">Tienes ${it.secs} segundos…</p>`));
+  S.memT = setTimeout(() => {
+    mount(shell('Parte 1 · Cognitiva', n, total, chip,
+      `<p class="q">${it.q}</p><input class="num" id="memIn" inputmode="numeric" autocomplete="off" maxlength="${it.digits.length}" placeholder="· · · ·" aria-label="Tu respuesta">
+       <div class="foot"><button class="btn link" data-act="skip">No lo recuerdo →</button><button class="btn" data-act="memok">Comprobar</button></div>`));
+    const inp = document.getElementById('memIn'); inp.focus();
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') answerCog(inp.value.replace(/\D/g, '') === it.expect); });
+  }, it.secs * 1000);
+}
+
+function answerCog(ok, el) {
+  const it = S.cog[S.ci];
+  if (!it || it.locked) return;
+  it.locked = true;
+  if (el) el.classList.add('sel');
+  S.res.push({ dom: it.dom, d: it.d, ok: !!ok });
+  setTimeout(() => { S.ci++; showCog(); }, el ? 320 : 0);
+}
+
+function showLik() {
+  const it = LIK[S.li];
+  if (!it) return results();
+  setProgress((S.cog.length + S.li) / TOTAL * 100);
+  const cur = S.lans[S.li];
+  mount(shell('Parte 2 · Personalidad', S.li + 1, LIK.length, 'Elige cuánto te describe',
+    `<p class="muted small" style="margin:0">¿Hasta qué punto te describe esta frase?</p>
+     <p class="st">${it.q}</p>
+     <div class="scale" role="group">${LIKLAB.map((l, i) => `<button class="lk ${cur === i + 1 ? 'sel' : ''}" data-act="lk" data-v="${i + 1}"><b>${i + 1}</b><span>${l}</span></button>`).join('')}</div>`,
+    `<div class="foot"><button class="btn link" data-act="back" ${S.li === 0 ? 'style="visibility:hidden"' : ''}>← Anterior</button><span class="muted small">Atajo: teclas 1–5</span></div>`));
+}
+
+/* ---------- cálculo ---------- */
+function compute() {
+  const dom = {}; let got = 0, max = 0;
+  Object.keys(DOMS).forEach(k => dom[k] = { g: 0, m: 0 });
+  S.res.forEach(r => { dom[r.dom].m += r.d; max += r.d; if (r.ok) { dom[r.dom].g += r.d; got += r.d; } });
+  const p = got / max;
+  const z = (p - 0.47) / 0.19;
+  const iq = Math.round(clamp(100 + 15 * z, 55, 145));
+  const pct = {}; Object.keys(dom).forEach(k => pct[k] = Math.round(dom[k].g / dom[k].m * 100));
+  const sums = {}, cnt = {};
+  LIK.forEach((it, i) => { const v = S.lans[i]; const s = it.r ? 6 - v : v; sums[it.t] = (sums[it.t] || 0) + s; cnt[it.t] = (cnt[it.t] || 0) + 1; });
+  const tr = {}; Object.keys(sums).forEach(k => tr[k] = Math.round(((sums[k] / cnt[k]) - 1) / 4 * 100));
+  const correct = S.res.filter(r => r.ok).length;
+  return { iq, p, pct, tr, percentile: cdf((iq - 100) / 15) * 100, correct, secs: Math.round((Date.now() - S.t0) / 1000) };
+}
+const lvl = v => v < 40 ? 'low' : v <= 65 ? 'mid' : 'high';
+const LVN = { low: 'Bajo', mid: 'Medio', high: 'Alto' };
+
+/* ---------- gráficos ---------- */
+function radarSVG(labels, vals) {
+  const W = 460, H = 380, cx = W / 2, cy = 190, R = 120, n = labels.length;
+  const pt = (i, r) => [cx + Math.sin(2 * Math.PI * i / n) * r, cy - Math.cos(2 * Math.PI * i / n) * r];
+  const poly = r => labels.map((_, i) => pt(i, r).join(',')).join(' ');
+  let g = [25, 50, 75, 100].map(p => `<polygon class="grid" points="${poly(R * p / 100)}"/>`).join('');
+  g += labels.map((_, i) => { const [x, y] = pt(i, R); return `<line class="grid" x1="${cx}" y1="${cy}" x2="${x}" y2="${y}"/>`; }).join('');
+  const dp = vals.map((v, i) => pt(i, R * Math.max(v, 4) / 100));
+  g += `<polygon points="${dp.map(p => p.join(',')).join(' ')}" fill="var(--accent)" fill-opacity=".25" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>`;
+  g += dp.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="var(--accent)"/>`).join('');
+  g += labels.map((l, i) => { const [x, y] = pt(i, R + 20); const s = Math.sin(2 * Math.PI * i / n);
+    const a = s > .3 ? 'start' : s < -.3 ? 'end' : 'middle';
+    return `<text x="${x}" y="${y + 4}" text-anchor="${a}" class="ink" style="font-weight:650">${l}</text><text x="${x}" y="${y + 18}" text-anchor="${a}">${vals[i]}%</text>`; }).join('');
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico de radar" style="width:100%;max-width:460px;margin:auto;display:block">${g}</svg>`;
+}
+
+function bellSVG(iq) {
+  const W = 640, H = 250, pl = 20, pr = 20, pt = 46, pb = 32, x0 = 55, x1 = 145;
+  const X = v => pl + (v - x0) / (x1 - x0) * (W - pl - pr);
+  const Y = v => H - pb - Math.exp(-0.5 * ((v - 100) / 15) ** 2) * (H - pb - pt);
+  const edges = [55, 70, 80, 90, 110, 120, 130, 145], cols = BANDS.slice().reverse();
+  const me = bandOf(iq);
+  let p = '';
+  for (let i = 0; i < edges.length - 1; i++) {
+    let d = `M${X(edges[i])},${H - pb}`;
+    for (let v = edges[i]; v <= edges[i + 1]; v++) d += `L${X(v)},${Y(v)}`;
+    d += `L${X(edges[i + 1])},${H - pb}Z`;
+    p += `<path d="${d}" fill="${cols[i].col}" opacity="${cols[i] === me ? .95 : .35}"/>`;
+  }
+  let d = ''; for (let v = x0; v <= x1; v++) d += (v === x0 ? 'M' : 'L') + X(v) + ',' + Y(v);
+  p += `<path d="${d}" fill="none" style="stroke:var(--ink)" stroke-width="2" opacity=".6"/>`;
+  p += [70, 85, 100, 115, 130].map(v => `<text x="${X(v)}" y="${H - 10}" text-anchor="middle">${v}</text>`).join('');
+  const mx = X(clamp(iq, x0, x1)), my = Y(clamp(iq, x0, x1));
+  p += `<line x1="${mx}" y1="${my}" x2="${mx}" y2="${H - pb}" style="stroke:var(--ink)" stroke-width="2" stroke-dasharray="4 3"/>
+        <circle cx="${mx}" cy="${my}" r="6" style="fill:var(--ink)"/>
+        <g transform="translate(${clamp(mx, 48, W - 48)} ${my - 34})"><rect x="-46" y="-17" width="92" height="28" rx="14" fill="var(--accent)"/><text class="" text-anchor="middle" y="2" style="fill:var(--accent-ink);font-weight:700;font-size:13px">Tú · ${iq}</text></g>`;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Curva de campana con tu posición" style="width:100%">${p}</svg>`;
+}
+
+/* ---------- informe ---------- */
+function results() {
+  setProgress(100);
+  const R = compute(), band = bandOf(R.iq), { pct, tr } = R;
+  // arquetipo
+  const names = { O: ['El Explorador', 'mente curiosa'], C: ['El Estratega', 'alma disciplinada'], E: ['El Catalizador', 'energía social'], A: ['El Aliado', 'corazón empático'], S: ['La Roca', 'calma interior'] };
+  const order = Object.keys(names).sort((a, b) => tr[b] - tr[a]);
+  const fluid = (pct.log + pct.num + pct.esp) / 3, cry = pct.ver;
+  const style = cry - fluid >= 15 ? 'con inclinación verbal' : fluid - cry >= 15 ? 'con inclinación lógico-matemática' : 'de perfil cognitivo equilibrado';
+  const arch = `${names[order[0]][0]} <span class="muted" style="font-weight:500;font-size:.6em;display:block">con ${names[order[1]][1]} · ${style}</span>`;
+  const lo = Math.max(55, R.iq - 8), hi = Math.min(145, R.iq + 8);
+  const top = (100 - R.percentile);
+  const doms = Object.keys(DOMS), dSorted = doms.slice().sort((a, b) => pct[b] - pct[a]);
+
+  const domText = v => v >= 75 ? 'Punto fuerte' : v >= 45 ? 'Rango medio' : 'Margen de mejora';
+  const cogBars = doms.map(k => `<div><div class="bar-h"><span>${DOMS[k]}</span><span>${pct[k]}% <span class="tag ${pct[k] >= 75 ? 'high' : pct[k] < 45 ? 'low' : ''}">${domText(pct[k])}</span></span></div><div class="bar"><i data-w="${pct[k]}"></i></div></div>`).join('');
+
+  const traitCards = Object.keys(TRAITS).map(k => { const L = lvl(tr[k]), t = TRAITS[k];
+    return `<div class="trait"><div class="bar-h"><span>${t.name}<span class="tag ${L === 'mid' ? '' : L}">${LVN[L]}</span></span><span>${tr[k]}%</span></div>
+      <div class="bar"><i data-w="${tr[k]}"></i></div><p style="margin-top:10px">${t[L][0]}</p><p class="tip"><b>Consejo:</b> ${t[L][1]}</p></div>`; }).join('');
+
+  const extraBars = Object.keys(EXTRAS).map(k => { const L = lvl(tr[k]), e = EXTRAS[k];
+    return `<div><div class="bar-h"><span>${e.name}<span class="tag ${L === 'mid' ? '' : L}">${LVN[L]}</span></span><span>${tr[k]}%</span></div><div class="bar"><i data-w="${tr[k]}"></i></div><p class="muted small" style="margin-top:6px">${e[L]}</p></div>`; }).join('');
+
+  // cruces
+  const ins = [];
+  if (R.iq >= 115 && tr.C < 40) ins.push(['⚡', 'Alto potencial, poca estructura', 'Tu capacidad está por encima de la media pero tus hábitos aún no la sostienen. A ti te funcionará más un sistema (rutinas, entornos, plazos externos) que la fuerza de voluntad.']);
+  if (R.iq >= 110 && tr.S < 40) ins.push(['🌀', 'Mente rápida, mente inquieta', 'Una buena capacidad analítica con alta sensibilidad emocional favorece la rumiación y el sobrepensar. Entrena la acción: acotar el tiempo de deliberación, escribir las preocupaciones y decidir.']);
+  if (tr.O >= 65 && R.iq >= 110) ins.push(['🔭', 'Explorador intelectual', 'Tu mente busca ideas nuevas y tiene recursos para procesarlas. Los entornos de aprendizaje continuo, investigación o creación te sientan especialmente bien.']);
+  if (tr.O >= 65 && tr.C < 40) ins.push(['🎨', 'Muchas ideas, poco cierre', 'Tu creatividad es abundante, pero la finalización es tu cuello de botella. Un socio o un sistema que te ayude a cerrar proyectos multiplica tu impacto.']);
+  if (tr.A >= 65 && tr.E < 40) ins.push(['🕊️', 'Empatía silenciosa', 'Te importan mucho las personas, pero lo vives en la cercanía, no en el escenario. Tu impacto está en las relaciones profundas y la escucha.']);
+  if (tr.E >= 65 && tr.C >= 65) ins.push(['🚀', 'Liderazgo natural', 'Energía social unida a disciplina: tienes el combo clásico de quien moviliza equipos y además entrega.']);
+  if (tr.A < 40 && R.iq >= 110) ins.push(['🗡️', 'Mente afilada, trato directo', 'Tu análisis es agudo y tu estilo, franco. Cuida el tono: que la razón no pierda la batalla por la forma.']);
+  if (tr.REF >= 65 && tr.EQ >= 65) ins.push(['⚖️', 'Cabeza y corazón alineados', 'Reflexionas con calma y lees bien las emociones: un perfil muy valioso para decidir bajo presión y mediar.']);
+  if (tr.RES < 40 && tr.S < 40) ins.push(['🌧️', 'Cuida tu recuperación', 'Sientes los golpes con fuerza y te cuesta reponerte. Dormir bien, moverte y apoyarte en otras personas no es un lujo, es tu mejor palanca.']);
+  if (pct[dSorted[0]] - pct[dSorted[4]] >= 35) ins.push(['📈', 'Perfil de picos y valles', `Destacas en «${DOMS[dSorted[0]]}» y tienes más margen en «${DOMS[dSorted[4]]}». Es muy común y no significa «inteligencia irregular»: son estilos cognitivos distintos. Apóyate en tu pico para compensar el valle.`]);
+  if (!ins.length) ins.push(['🧬', 'Perfil equilibrado', 'No aparecen contrastes extremos entre tus capacidades y tu personalidad: tu perfil es coherente y adaptable, sin grandes desajustes que corregir.']);
+
+  const strong = [...order.slice(0, 2).map(k => TRAITS[k].fort), `${DOMS[dSorted[0]]} (${pct[dSorted[0]]}%)`];
+  const weak = [...order.slice(-2).reverse().map(k => TRAITS[k].work), `${DOMS[dSorted[4]]} (${pct[dSorted[4]]}%)`];
+  const mm = Math.floor(R.secs / 60), ss = String(R.secs % 60).padStart(2, '0');
+
+  mount(`
+  <section class="screen card hero">
+    <span class="pill">Tu informe</span>
+    <p class="arch">${arch}</p>
+    <div class="iqnum" id="iqn" aria-label="CI estimado ${R.iq}">0</div>
+    <div class="badge">${band.name}</div>
+    <p class="lead" style="margin:6px auto">CI estimado, con un rango probable de <b>${lo}–${hi}</b>. Superas aproximadamente al <b>${Math.round(R.percentile)} %</b> de la población.</p>
+    <div class="kpis">
+      <div class="kpi"><b>${R.correct}/${S.res.length}</b><span>respuestas acertadas</span></div>
+      <div class="kpi"><b>${Math.round(top < 1 ? 1 : top)} %</b><span>está por encima de ti</span></div>
+      <div class="kpi"><b>${Math.round(fluid)}% · ${Math.round(cry)}%</b><span>razonamiento fluido · verbal</span></div>
+      <div class="kpi"><b>${mm}:${ss}</b><span>tiempo total (no puntúa)</span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>📊 Tu posición en el espectro</h2>
+    <p class="muted">La inteligencia se distribuye en forma de campana: la mayoría de las personas se agrupa alrededor de 100 y los extremos son muy poco frecuentes.</p>
+    ${bellSVG(R.iq)}
+    <div class="legend">${BANDS.map(b => `<div class="${b === band ? 'on' : ''}"><i style="background:${b.col}"></i>${b.name}<span class="muted small">${b.min ? 'CI ≥ ' + b.min : 'CI < 70'}</span><em>${b.share}</em></div>`).join('')}</div>
+  </section>
+
+  <section class="card">
+    <h2>🧠 Perfil cognitivo</h2>
+    <div class="two"><div>${radarSVG(['Lógica', 'Verbal', 'Numérico', 'Visoespacial', 'Memoria'], [pct.log, pct.ver, pct.num, pct.esp, pct.mem])}</div><div class="bars">${cogBars}</div></div>
+    <p class="muted" style="margin-top:16px">Tu punto más fuerte es <b>${DOMS[dSorted[0]].toLowerCase()}</b> y donde más margen tienes es <b>${DOMS[dSorted[4]].toLowerCase()}</b>. El razonamiento «fluido» (lógica, números, formas) refleja resolver problemas nuevos; el «cristalizado» (verbal) refleja conocimiento acumulado.</p>
+  </section>
+
+  <section class="card">
+    <h2>🧭 Personalidad · Big Five</h2>
+    <div class="two"><div>${radarSVG(Object.keys(TRAITS).map(k => TRAITS[k].short), Object.keys(TRAITS).map(k => tr[k]))}</div>
+    <p class="muted">Las cinco grandes dimensiones de la personalidad son el modelo más respaldado por la investigación. No hay perfiles «buenos» o «malos»: cada nivel tiene ventajas y costes según el contexto.</p></div>
+    <div style="margin-top:8px">${traitCards}</div>
+  </section>
+
+  <section class="card">
+    <h2>🌱 Dimensiones complementarias</h2>
+    <div class="bars">${extraBars}</div>
+  </section>
+
+  <section class="card">
+    <h2>🔎 Análisis psicológico cruzado</h2>
+    <p class="muted">Lo que aparece al combinar tu capacidad cognitiva con tu manera de ser:</p>
+    ${ins.map(i => `<div class="insight"><span class="ic">${i[0]}</span><div><h3>${i[1]}</h3><p class="muted" style="margin:0">${i[2]}</p></div></div>`).join('')}
+    <div class="lists" style="margin-top:20px">
+      <div><h3>💪 Tus fortalezas</h3><ul>${strong.map(s => `<li>${s}</li>`).join('')}</ul></div>
+      <div><h3>🎯 Áreas para trabajar</h3><ul>${weak.map(s => `<li>${s}</li>`).join('')}</ul></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Léelo con perspectiva</h3>
+    <p class="muted small">Este informe es una estimación orientativa generada con un test breve de autoadministración. Factores como el cansancio, la concentración, el idioma o el ánimo del momento influyen. No es un diagnóstico ni sustituye una evaluación psicológica profesional; si algo de lo que has leído te preocupa, habla con un psicólogo o psicóloga. Tus respuestas no se han enviado ni guardado en ningún sitio.</p>
+    <div class="row noprint" style="margin-top:14px"><button class="btn" data-act="retry">Repetir el test</button><button class="btn ghost" data-act="print">Guardar como PDF / imprimir</button></div>
+  </section>`);
+
+  // animaciones
+  const el = document.getElementById('iqn'), t0 = performance.now();
+  const tick = t => { const k = Math.min(1, (t - t0) / 1400); el.textContent = Math.round(R.iq * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+  requestAnimationFrame(() => setTimeout(() => document.querySelectorAll('.bar i[data-w]').forEach(b => b.style.width = b.dataset.w + '%'), 80));
+}
+
+/* ---------- eventos ---------- */
+app.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act;
+  if (a === 'start') intro('Parte 1 de 2', 'Retos cognitivos',
+    `${S.cog.length || (COG_BANK.length + VIS.length + 3)} preguntas de dificultad creciente: números, lógica, lenguaje, figuras y memoria. Responde sin calculadora ni ayuda externa. Si no sabes una, elige la que te parezca más probable o salta: <b>no hay penalización por fallar, pero sí por saltar</b> (cuenta como fallo). Las preguntas de memoria desaparecen tras unos segundos.`, 'p1', 'Empezar');
+  else if (a === 'p1') { reset(); S.cog = buildCog(); S.t0 = Date.now(); showCog(); }
+  else if (a === 'pick') answerCog(S.cog[S.ci].opts[+b.dataset.i].ok, b);
+  else if (a === 'skip') answerCog(false);
+  else if (a === 'memok') { const i = document.getElementById('memIn'); answerCog(i.value.replace(/\D/g, '') === S.cog[S.ci].expect); }
+  else if (a === 'p2') { S.li = 0; showLik(); }
+  else if (a === 'lk') { S.lans[S.li] = +b.dataset.v; b.classList.add('sel'); setTimeout(() => { S.li++; showLik(); }, 220); }
+  else if (a === 'back') { if (S.li > 0) { S.li--; showLik(); } }
+  else if (a === 'retry') { reset(); welcome(); }
+  else if (a === 'print') window.print();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  const n = parseInt(e.key, 10); if (!n) return;
+  const opts = app.querySelectorAll('[data-act="pick"]'), lk = app.querySelectorAll('[data-act="lk"]');
+  if (opts.length && n <= opts.length) opts[n - 1].click();
+  else if (lk.length && n <= 5) lk[n - 1].click();
+});
+
+welcome();
+</script>
+</body>
+</html>
